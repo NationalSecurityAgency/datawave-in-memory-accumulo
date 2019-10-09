@@ -3,13 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>gov.nsa.datawave.contrib</groupId>
     <artifactId>datawave-in-memory-accumulo</artifactId>
-    <version>1.9.2.3</version>
+    <version>1.9.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Datawave InMemory Accumulo</name>
     <properties>
-        <version.accumulo>1.9.2</version.accumulo>
+        <version.accumulo>1.9.3</version.accumulo>
     </properties>
-    <url>https://code.nsa.gov/datawave</url>
+    <url>https://code.nsa.gov/datawave-in-memory-accumulo</url>
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
@@ -17,9 +17,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:https://github.com/NationalSecurityAgency/datawave.git</connection>
-        <developerConnection>scm:git:git@github.com:NationalSecurityAgency/datawave.git</developerConnection>
-        <url>https://github.com/NationalSecurityAgency/datawave</url>
+        <connection>scm:git:https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo.git</connection>
+        <developerConnection>scm:git:git@github.com:NationalSecurityAgency/datawave-in-memory-accumulo.git</developerConnection>
+        <url>https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo</url>
     </scm>
     <distributionManagement>
         <repository>
