@@ -36,8 +36,8 @@ public class InMemoryTabletLocator extends TabletLocator {
     public InMemoryTabletLocator() {}
     
     @Override
-    public TabletLocation locateTablet(ClientContext context, Text row, boolean skipRow, boolean retry) throws AccumuloException, AccumuloSecurityException,
-                    TableNotFoundException {
+    public TabletLocation locateTablet(ClientContext context, Text row, boolean skipRow, boolean retry)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         throw new UnsupportedOperationException();
     }
     
@@ -51,8 +51,8 @@ public class InMemoryTabletLocator extends TabletLocator {
     }
     
     @Override
-    public List<Range> binRanges(ClientContext context, List<Range> ranges, Map<String,Map<KeyExtent,List<Range>>> binnedRanges) throws AccumuloException,
-                    AccumuloSecurityException, TableNotFoundException {
+    public List<Range> binRanges(ClientContext context, List<Range> ranges, Map<String,Map<KeyExtent,List<Range>>> binnedRanges)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         binnedRanges.put("", Collections.singletonMap(new KeyExtent("", null, null), ranges));
         return Collections.emptyList();
     }

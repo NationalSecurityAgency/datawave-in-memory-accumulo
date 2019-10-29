@@ -154,7 +154,7 @@ public class InMemoryTable {
                     key.setTimestamp(mutationCount);
                 else
                     key.setTimestamp(now);
-            
+                
             table.put(new InMemoryMemKey(key, mutationCount), new Value(u.getValue()));
         }
     }

@@ -76,8 +76,8 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     }
     
     @Override
-    public void rename(String oldNamespaceName, String newNamespaceName) throws AccumuloSecurityException, NamespaceNotFoundException, AccumuloException,
-                    NamespaceExistsException {
+    public void rename(String oldNamespaceName, String newNamespaceName)
+                    throws AccumuloSecurityException, NamespaceNotFoundException, AccumuloException, NamespaceExistsException {
         if (!exists(oldNamespaceName))
             throw new NamespaceNotFoundException(oldNamespaceName, oldNamespaceName, "");
         if (exists(newNamespaceName))
@@ -120,8 +120,8 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     }
     
     @Override
-    public boolean testClassLoad(String namespace, String className, String asTypeName) throws AccumuloException, AccumuloSecurityException,
-                    NamespaceNotFoundException {
+    public boolean testClassLoad(String namespace, String className, String asTypeName)
+                    throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
         
         try {
             AccumuloVFSClassLoader.loadClass(className, Class.forName(asTypeName));

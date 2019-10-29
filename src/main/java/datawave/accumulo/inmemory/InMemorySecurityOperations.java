@@ -127,8 +127,8 @@ class InMemorySecurityOperations implements SecurityOperations {
     }
     
     @Override
-    public boolean hasNamespacePermission(String principal, String namespace, NamespacePermission permission) throws AccumuloException,
-                    AccumuloSecurityException {
+    public boolean hasNamespacePermission(String principal, String namespace, NamespacePermission permission)
+                    throws AccumuloException, AccumuloSecurityException {
         InMemoryNamespace mockNamespace = acu.namespaces.get(namespace);
         if (mockNamespace == null)
             throw new AccumuloSecurityException(namespace, SecurityErrorCode.NAMESPACE_DOESNT_EXIST);
@@ -162,8 +162,8 @@ class InMemorySecurityOperations implements SecurityOperations {
     }
     
     @Override
-    public void grantNamespacePermission(String principal, String namespace, NamespacePermission permission) throws AccumuloException,
-                    AccumuloSecurityException {
+    public void grantNamespacePermission(String principal, String namespace, NamespacePermission permission)
+                    throws AccumuloException, AccumuloSecurityException {
         if (acu.users.get(principal) == null)
             throw new AccumuloSecurityException(principal, SecurityErrorCode.USER_DOESNT_EXIST);
         InMemoryNamespace mockNamespace = acu.namespaces.get(namespace);
@@ -199,8 +199,8 @@ class InMemorySecurityOperations implements SecurityOperations {
     }
     
     @Override
-    public void revokeNamespacePermission(String principal, String namespace, NamespacePermission permission) throws AccumuloException,
-                    AccumuloSecurityException {
+    public void revokeNamespacePermission(String principal, String namespace, NamespacePermission permission)
+                    throws AccumuloException, AccumuloSecurityException {
         if (acu.users.get(principal) == null)
             throw new AccumuloSecurityException(principal, SecurityErrorCode.USER_DOESNT_EXIST);
         InMemoryNamespace mockNamespace = acu.namespaces.get(namespace);

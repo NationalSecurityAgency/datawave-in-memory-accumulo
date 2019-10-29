@@ -44,14 +44,14 @@ import org.apache.commons.collections.iterators.IteratorChain;
 public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchScanner, ScannerRebuilder, Cloneable {
     
     List<Range> ranges = null;
-
+    
     @Override
     public InMemoryBatchScanner clone() {
         InMemoryBatchScanner clone = new InMemoryBatchScanner(table, getAuthorizations());
         clone.ranges = (ranges == null ? null : new ArrayList<>(ranges));
         ScannerOptions.setOptions(clone, this);
         clone.timeOut = timeOut;
-
+        
         return clone;
     }
     
@@ -88,12 +88,12 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
         }
         return chain;
     }
-
+    
     @Override
     public Iterator<Entry<Key,Value>> rebuild(Key lastKey) {
-        // Rebuild the set of ranges.  We should drop all ranges up until the range that includes
-        // the specified lastKey.  The one that includes it will be modified to start at lastKey,
-        // non-inclusive.  All subsequent ranges will remain in the list.
+        // Rebuild the set of ranges. We should drop all ranges up until the range that includes
+        // the specified lastKey. The one that includes it will be modified to start at lastKey,
+        // non-inclusive. All subsequent ranges will remain in the list.
         // Note the key assumption here is that the ranges are processed in order (see IteratorChain
         // used above) and that the ranges are non-overlapping (see Range.mergeOverlapping() used
         // above).
@@ -118,7 +118,7 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
             }
             this.ranges = newRanges;
         }
-
+        
         // now return a rebuild iterator stack using the new set of ranges.
         return iterator();
     }

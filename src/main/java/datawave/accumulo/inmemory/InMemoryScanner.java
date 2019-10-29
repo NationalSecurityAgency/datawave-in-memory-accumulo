@@ -35,7 +35,7 @@ public class InMemoryScanner extends InMemoryScannerBase implements Scanner, Sca
     
     int batchSize = 0;
     Range range = new Range();
-
+    
     @Override
     public InMemoryScanner clone() {
         InMemoryScanner clone = new InMemoryScanner(table, getAuthorizations());
@@ -118,7 +118,7 @@ public class InMemoryScanner extends InMemoryScannerBase implements Scanner, Sca
         }
         
     }
-
+    
     @Override
     public Iterator<Entry<Key,Value>> rebuild(Key lastKey) {
         if (lastKey != null) {
@@ -126,7 +126,7 @@ public class InMemoryScanner extends InMemoryScannerBase implements Scanner, Sca
             Range newRange = new Range(lastKey, false, range.getEndKey(), range.isEndKeyInclusive());
             this.range = newRange;
         }
-
+        
         // now rebuild the iterator stack using the new range.
         return iterator();
     }

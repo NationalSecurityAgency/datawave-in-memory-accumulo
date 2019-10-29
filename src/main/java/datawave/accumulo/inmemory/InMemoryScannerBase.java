@@ -48,7 +48,7 @@ public class InMemoryScannerBase extends ScannerOptions {
     
     protected final InMemoryTable table;
     protected final Authorizations auths;
-
+    
     private ArrayList<SortedKeyValueIterator<Key,Value>> injectedIterators = new ArrayList<>();
     
     InMemoryScannerBase(InMemoryTable mockTable, Authorizations authorizations) {
@@ -155,9 +155,10 @@ public class InMemoryScannerBase extends ScannerOptions {
     public void setClassLoaderContext(String context) {
         throw new UnsupportedOperationException();
     }
-
+    
     /**
      * Apply all injected iterators in order to the base wrapped iterator
+     * 
      * @param base
      * @return
      */
@@ -171,12 +172,13 @@ public class InMemoryScannerBase extends ScannerOptions {
                 throw new RuntimeException("Unable to apply injected iterators", e);
             }
         }
-
+        
         return prev;
     }
-
+    
     /**
      * Add an iterator to the front of the iterator stack
+     * 
      * @param injectedIterator
      */
     public void addInjectedIterator(SortedKeyValueIterator<Key,Value> injectedIterator) {

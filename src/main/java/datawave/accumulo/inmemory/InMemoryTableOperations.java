@@ -165,8 +165,8 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public void rename(String oldTableName, String newTableName) throws AccumuloSecurityException, TableNotFoundException, AccumuloException,
-                    TableExistsException {
+    public void rename(String oldTableName, String newTableName)
+                    throws AccumuloSecurityException, TableNotFoundException, AccumuloException, TableExistsException {
         if (!exists(oldTableName))
             throw new TableNotFoundException(oldTableName, oldTableName, "");
         if (exists(newTableName))
@@ -232,16 +232,16 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public Set<Range> splitRangeByTablets(String tableName, Range range, int maxSplits) throws AccumuloException, AccumuloSecurityException,
-                    TableNotFoundException {
+    public Set<Range> splitRangeByTablets(String tableName, Range range, int maxSplits)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
         return Collections.singleton(range);
     }
     
     @Override
-    public void importDirectory(String tableName, String dir, String failureDir, boolean setTime) throws IOException, AccumuloException,
-                    AccumuloSecurityException, TableNotFoundException {
+    public void importDirectory(String tableName, String dir, String failureDir, boolean setTime)
+                    throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
         long time = System.currentTimeMillis();
         InMemoryTable table = acu.tables.get(tableName);
         if (table == null) {
@@ -402,15 +402,15 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public void compact(String tableName, Text start, Text end, boolean flush, boolean wait) throws AccumuloSecurityException, TableNotFoundException,
-                    AccumuloException {
+    public void compact(String tableName, Text start, Text end, boolean flush, boolean wait)
+                    throws AccumuloSecurityException, TableNotFoundException, AccumuloException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
     }
     
     @Override
-    public void compact(String tableName, Text start, Text end, List<IteratorSetting> iterators, boolean flush, boolean wait) throws AccumuloSecurityException,
-                    TableNotFoundException, AccumuloException {
+    public void compact(String tableName, Text start, Text end, List<IteratorSetting> iterators, boolean flush, boolean wait)
+                    throws AccumuloSecurityException, TableNotFoundException, AccumuloException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
         
@@ -466,8 +466,8 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public boolean testClassLoad(String tableName, String className, String asTypeName) throws AccumuloException, AccumuloSecurityException,
-                    TableNotFoundException {
+    public boolean testClassLoad(String tableName, String className, String asTypeName)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         
         try {
             AccumuloVFSClassLoader.loadClass(className, Class.forName(asTypeName));
@@ -479,8 +479,8 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public void setSamplerConfiguration(String tableName, SamplerConfiguration samplerConfiguration) throws TableNotFoundException, AccumuloException,
-                    AccumuloSecurityException {
+    public void setSamplerConfiguration(String tableName, SamplerConfiguration samplerConfiguration)
+                    throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
     }
     
@@ -501,46 +501,44 @@ class InMemoryTableOperations extends TableOperationsHelper {
         List<Range> ignore = locator.binRanges(null, new ArrayList<>(ranges), binnedRanges);
         return new LocationsImpl(binnedRanges);
     }
-
+    
     private static class LocationsImpl implements Locations {
-
+        
         private Map<Range,List<TabletId>> groupedByRanges;
         private Map<TabletId,List<Range>> groupedByTablets;
         private Map<TabletId,String> tabletLocations;
-
+        
         public LocationsImpl(Map<String,Map<KeyExtent,List<Range>>> binnedRanges) {
             groupedByTablets = new HashMap<>();
             groupedByRanges = null;
             tabletLocations = new HashMap<>();
-
+            
             for (Entry<String,Map<KeyExtent,List<Range>>> entry : binnedRanges.entrySet()) {
                 String location = entry.getKey();
-
+                
                 for (Entry<KeyExtent,List<Range>> entry2 : entry.getValue().entrySet()) {
                     TabletIdImpl tabletId = new TabletIdImpl(entry2.getKey());
                     tabletLocations.put(tabletId, location);
-                    List<Range> prev =
-                            groupedByTablets.put(tabletId, Collections.unmodifiableList(entry2.getValue()));
+                    List<Range> prev = groupedByTablets.put(tabletId, Collections.unmodifiableList(entry2.getValue()));
                     if (prev != null) {
-                        throw new RuntimeException(
-                                "Unexpected : tablet at multiple locations : " + location + " " + tabletId);
+                        throw new RuntimeException("Unexpected : tablet at multiple locations : " + location + " " + tabletId);
                     }
                 }
             }
-
+            
             groupedByTablets = Collections.unmodifiableMap(groupedByTablets);
         }
-
+        
         @Override
         public String getTabletLocation(TabletId tabletId) {
             return tabletLocations.get(tabletId);
         }
-
+        
         @Override
         public Map<Range,List<TabletId>> groupByRange() {
             if (groupedByRanges == null) {
                 Map<Range,List<TabletId>> tmp = new HashMap<>();
-
+                
                 for (Entry<TabletId,List<Range>> entry : groupedByTablets.entrySet()) {
                     for (Range range : entry.getValue()) {
                         List<TabletId> tablets = tmp.get(range);
@@ -548,22 +546,22 @@ class InMemoryTableOperations extends TableOperationsHelper {
                             tablets = new ArrayList<>();
                             tmp.put(range, tablets);
                         }
-
+                        
                         tablets.add(entry.getKey());
                     }
                 }
-
+                
                 Map<Range,List<TabletId>> tmp2 = new HashMap<>();
                 for (Entry<Range,List<TabletId>> entry : tmp.entrySet()) {
                     tmp2.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
                 }
-
+                
                 groupedByRanges = Collections.unmodifiableMap(tmp2);
             }
-
+            
             return groupedByRanges;
         }
-
+        
         @Override
         public Map<TabletId,List<Range>> groupByTablet() {
             return groupedByTablets;
