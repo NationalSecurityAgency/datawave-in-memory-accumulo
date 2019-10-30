@@ -16,7 +16,7 @@
     <scm>
         <connection>scm:git:https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo.git</connection>
         <developerConnection>scm:git:git@github.com:NationalSecurityAgency/datawave-in-memory-accumulo.git</developerConnection>
-        <tag>2.0.0</tag>
+        <tag>HEAD</tag>
         <url>https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo</url>
     </scm>
     <distributionManagement>
