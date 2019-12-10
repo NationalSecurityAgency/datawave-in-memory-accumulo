@@ -40,21 +40,19 @@ import org.apache.accumulo.core.clientImpl.thrift.SecurityErrorCode;
 import org.apache.accumulo.core.security.Authorizations;
 
 public class InMemoryAccumuloClient implements AccumuloClient {
-
+    
     String username;
     private final InMemoryAccumulo acu;
-    private final InMemoryInstance instance;
 
-    InMemoryAccumuloClient(String username, InMemoryInstance instance) throws AccumuloSecurityException {
-        this(new Credentials(username, new NullToken()), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()), instance);
+    public InMemoryAccumuloClient(String username, InMemoryInstance instance) throws AccumuloSecurityException {
+        this(new Credentials(username, new NullToken()), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()));
     }
-
-    InMemoryAccumuloClient(Credentials credentials, InMemoryAccumulo acu, InMemoryInstance instance) throws AccumuloSecurityException {
+    
+    public InMemoryAccumuloClient(Credentials credentials, InMemoryAccumulo acu) throws AccumuloSecurityException {
         if (credentials.getToken().isDestroyed())
             throw new AccumuloSecurityException(credentials.getPrincipal(), SecurityErrorCode.TOKEN_EXPIRED);
         this.username = credentials.getPrincipal();
         this.acu = acu;
-        this.instance = instance;
     }
     
     @Override
@@ -63,29 +61,30 @@ public class InMemoryAccumuloClient implements AccumuloClient {
             throw new TableNotFoundException(tableName, tableName, "no such table");
         return acu.createBatchScanner(tableName, authorizations);
     }
-
+    
     @Override
     public BatchScanner createBatchScanner(String tableName, Authorizations authorizations) throws TableNotFoundException {
         return createBatchScanner(tableName, authorizations, 1);
     }
-
-    @Override public BatchScanner createBatchScanner(String tableName) throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
-        // TODO add implementation
-        throw new UnsupportedOperationException();
+    
+    @Override
+    public BatchScanner createBatchScanner(String tableName) throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
+        return createBatchScanner(tableName, securityOperations().getUserAuthorizations(username));
     }
-
+    
     @Override
     public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads, BatchWriterConfig config)
                     throws TableNotFoundException {
         return createBatchDeleter(tableName, authorizations, numQueryThreads);
     }
-
-    @Override public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads) throws TableNotFoundException {
+    
+    @Override
+    public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads) throws TableNotFoundException {
         if (acu.tables.get(tableName) == null)
             throw new TableNotFoundException(tableName, tableName, "no such table");
         return new InMemoryBatchDeleter(acu, tableName, authorizations);
     }
-
+    
     @Override
     public BatchWriter createBatchWriter(String tableName) throws TableNotFoundException {
         if (acu.tables.get(tableName) == null)
@@ -97,16 +96,17 @@ public class InMemoryAccumuloClient implements AccumuloClient {
     public BatchWriter createBatchWriter(String tableName, BatchWriterConfig config) throws TableNotFoundException {
         return createBatchWriter(tableName);
     }
-
+    
     @Override
     public MultiTableBatchWriter createMultiTableBatchWriter(BatchWriterConfig config) {
         return createMultiTableBatchWriter();
     }
-
-    @Override public MultiTableBatchWriter createMultiTableBatchWriter() {
+    
+    @Override
+    public MultiTableBatchWriter createMultiTableBatchWriter() {
         return new InMemoryMultiTableBatchWriter(acu);
     }
-
+    
     @Override
     public Scanner createScanner(String tableName, Authorizations authorizations) throws TableNotFoundException {
         InMemoryTable table = acu.tables.get(tableName);
@@ -114,12 +114,12 @@ public class InMemoryAccumuloClient implements AccumuloClient {
             throw new TableNotFoundException(tableName, tableName, "no such table");
         return new InMemoryScanner(table, authorizations);
     }
-
-    @Override public Scanner createScanner(String tableName) throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
-        // TODO add implementation
-        throw new UnsupportedOperationException();
+    
+    @Override
+    public Scanner createScanner(String tableName) throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
+        return createScanner(tableName, securityOperations().getUserAuthorizations(username));
     }
-
+    
     @Override
     public String whoami() {
         return username;
@@ -156,12 +156,13 @@ public class InMemoryAccumuloClient implements AccumuloClient {
         // TODO add implementation
         throw new UnsupportedOperationException();
     }
-
-    @Override public Properties properties() {
+    
+    @Override
+    public Properties properties() {
         return new Properties();
     }
-
-    @Override public void close() {
-    }
-
+    
+    @Override
+    public void close() {}
+    
 }
