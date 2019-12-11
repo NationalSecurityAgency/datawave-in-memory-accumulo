@@ -35,15 +35,17 @@ import org.apache.accumulo.core.client.admin.ReplicationOperations;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.security.tokens.NullToken;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.clientImpl.Credentials;
 import org.apache.accumulo.core.clientImpl.thrift.SecurityErrorCode;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.SystemPermission;
 
 public class InMemoryAccumuloClient implements AccumuloClient {
     
     String username;
     private final InMemoryAccumulo acu;
-
+    
     public InMemoryAccumuloClient(String username, InMemoryInstance instance) throws AccumuloSecurityException {
         this(new Credentials(username, new NullToken()), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()));
     }
@@ -53,6 +55,11 @@ public class InMemoryAccumuloClient implements AccumuloClient {
             throw new AccumuloSecurityException(credentials.getPrincipal(), SecurityErrorCode.TOKEN_EXPIRED);
         this.username = credentials.getPrincipal();
         this.acu = acu;
+        if (!acu.users.containsKey(username)) {
+            InMemoryUser user = new InMemoryUser(username, new PasswordToken(new byte[0]), Authorizations.EMPTY);
+            user.permissions.add(SystemPermission.SYSTEM);
+            acu.users.put(user.name, user);
+        }
     }
     
     @Override
