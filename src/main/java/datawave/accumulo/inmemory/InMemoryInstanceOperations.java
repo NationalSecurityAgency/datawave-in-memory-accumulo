@@ -93,6 +93,6 @@ class InMemoryInstanceOperations implements InstanceOperations {
     
     @Override
     public String getInstanceID() {
-        return "";
+        return "in-memory-instance";
     }
 }
