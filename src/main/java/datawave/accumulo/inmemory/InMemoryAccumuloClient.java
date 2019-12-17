@@ -47,7 +47,7 @@ public class InMemoryAccumuloClient implements AccumuloClient {
     private final InMemoryAccumulo acu;
     
     public InMemoryAccumuloClient(String username, InMemoryInstance instance) throws AccumuloSecurityException {
-        this(new Credentials(username, new NullToken()), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()));
+        this(new Credentials(username, new NullToken()), instance.acu);
     }
     
     public InMemoryAccumuloClient(Credentials credentials, InMemoryAccumulo acu) throws AccumuloSecurityException {
@@ -153,7 +153,7 @@ public class InMemoryAccumuloClient implements AccumuloClient {
     }
     
     @Override
-    public ConditionalWriter createConditionalWriter(String tableName, ConditionalWriterConfig config) throws TableNotFoundException {
+    public ConditionalWriter createConditionalWriter(String tableName, ConditionalWriterConfig config) {
         // TODO add implementation
         throw new UnsupportedOperationException();
     }
