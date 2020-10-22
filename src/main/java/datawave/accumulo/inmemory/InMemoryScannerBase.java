@@ -33,7 +33,6 @@ import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
-import org.apache.accumulo.core.iterators.IteratorUtil;
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.system.ColumnFamilySkippingIterator;
@@ -136,8 +135,8 @@ public class InMemoryScannerBase extends ScannerOptions {
         AccumuloConfiguration conf = new InMemoryConfiguration(table.settings);
         InMemoryIteratorEnvironment iterEnv = new InMemoryIteratorEnvironment(auths);
         SortedKeyValueIterator<Key,Value> injectedIterators = applyInjectedIterators(wrappedFilter);
-        SortedKeyValueIterator<Key,Value> result = iterEnv.getTopLevelIterator(IteratorUtil.loadIterators(IteratorScope.scan, injectedIterators, null, conf,
-                        serverSideIteratorList, serverSideIteratorOptions, iterEnv, false));
+        SortedKeyValueIterator<Key,Value> result = iterEnv.getTopLevelIterator(IteratorUtils.loadIterators(IteratorScope.scan, injectedIterators, null, conf,
+                        serverSideIteratorList, serverSideIteratorOptions, iterEnv));
         return result;
     }
     
