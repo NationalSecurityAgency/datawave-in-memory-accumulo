@@ -35,9 +35,9 @@ import org.apache.accumulo.core.client.admin.NamespaceOperations;
 import org.apache.accumulo.core.client.admin.ReplicationOperations;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.clientImpl.Credentials;
 import org.apache.accumulo.core.clientImpl.thrift.SecurityErrorCode;
-import org.apache.accumulo.core.client.security.tokens.NullToken;
 import org.apache.accumulo.core.security.Authorizations;
 
 public class InMemoryConnector extends Connector {
@@ -47,7 +47,7 @@ public class InMemoryConnector extends Connector {
     private final Instance instance;
     
     InMemoryConnector(String username, InMemoryInstance instance) throws AccumuloSecurityException {
-        this(new Credentials(username, new NullToken()), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()), instance);
+        this(new Credentials(username, new PasswordToken(new byte[0])), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()), instance);
     }
     
     InMemoryConnector(Credentials credentials, InMemoryAccumulo acu, InMemoryInstance instance) throws AccumuloSecurityException {
