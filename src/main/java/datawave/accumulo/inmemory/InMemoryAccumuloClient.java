@@ -34,23 +34,25 @@ import org.apache.accumulo.core.client.admin.NamespaceOperations;
 import org.apache.accumulo.core.client.admin.ReplicationOperations;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.accumulo.core.client.security.tokens.NullToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.clientImpl.ClientContext;
 import org.apache.accumulo.core.clientImpl.Credentials;
 import org.apache.accumulo.core.clientImpl.thrift.SecurityErrorCode;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
+import org.apache.accumulo.core.singletons.SingletonReservation;
 
-public class InMemoryAccumuloClient implements AccumuloClient {
+public class InMemoryAccumuloClient extends ClientContext implements AccumuloClient {
     
     String username;
     private final InMemoryAccumulo acu;
     
     public InMemoryAccumuloClient(String username, InMemoryInstance instance) throws AccumuloSecurityException {
-        this(new Credentials(username, new NullToken()), instance.acu);
+        this(new Credentials(username, new PasswordToken(new byte[0])), instance.acu);
     }
     
     public InMemoryAccumuloClient(Credentials credentials, InMemoryAccumulo acu) throws AccumuloSecurityException {
+        super(SingletonReservation.noop(), new InMemoryClientInfo(credentials));
         if (credentials.getToken().isDestroyed())
             throw new AccumuloSecurityException(credentials.getPrincipal(), SecurityErrorCode.TOKEN_EXPIRED);
         this.username = credentials.getPrincipal();
