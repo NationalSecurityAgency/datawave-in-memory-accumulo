@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>gov.nsa.datawave.contrib</groupId>
     <artifactId>datawave-in-memory-accumulo</artifactId>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Datawave InMemory Accumulo</name>
     <url>https://code.nsa.gov/datawave-in-memory-accumulo</url>
@@ -30,7 +30,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <version.accumulo>2.0.0</version.accumulo>
+        <version.accumulo>2.1.0-SNAPSHOT</version.accumulo>
     </properties>
     <dependencyManagement>
         <dependencies>

@@ -30,12 +30,14 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.CloneConfiguration;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.DiskUsage;
 import org.apache.accumulo.core.client.admin.FindMax;
@@ -45,7 +47,6 @@ import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
 import org.apache.accumulo.core.clientImpl.Tables;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
-import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.crypto.CryptoServiceFactory;
 import org.apache.accumulo.core.data.Key;
@@ -61,7 +62,7 @@ import org.apache.accumulo.core.metadata.MetadataTable;
 import org.apache.accumulo.core.metadata.RootTable;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader;
+import org.apache.accumulo.core.util.Validators;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -121,8 +122,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
     @Override
     public void create(String tableName, NewTableConfiguration ntc) throws AccumuloException, AccumuloSecurityException, TableExistsException {
         String namespace = Tables.qualify(tableName).getFirst();
-        
-        checkArgument(tableName.matches(Tables.VALID_NAME_REGEX));
+        Validators.NEW_TABLE_NAME.validate(tableName);
         if (exists(tableName))
             throw new TableExistsException(tableName, tableName, "");
         checkArgument(namespaceExists(namespace), "Namespace (" + namespace + ") does not exist, create it first");
@@ -198,24 +198,27 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public Iterable<Entry<String,String>> getProperties(String tableName) throws TableNotFoundException {
+    public Iterable<Entry<String,String>> getProperties(String tableName) throws AccumuloException, TableNotFoundException {
+        return getConfiguration(tableName).entrySet();
+    }
+    
+    @Override
+    public Map<String,String> getConfiguration(String tableName) throws AccumuloException, TableNotFoundException {
         String namespace = Tables.qualify(tableName).getFirst();
         if (!exists(tableName)) {
             if (!namespaceExists(namespace))
                 throw new TableNotFoundException(tableName, new NamespaceNotFoundException(null, namespace, null));
             throw new TableNotFoundException(null, tableName, null);
         }
-        
-        Set<Entry<String,String>> props = new HashSet<>(acu.namespaces.get(namespace).settings.entrySet());
-        
-        Set<Entry<String,String>> tableProps = acu.tables.get(tableName).settings.entrySet();
-        for (Entry<String,String> e : tableProps) {
-            if (props.contains(e)) {
-                props.remove(e);
+        Map<String,String> conf = new HashMap<>(acu.namespaces.get(namespace).settings);
+        Map<String,String> tableConf = acu.tables.get(tableName).settings;
+        for (Entry<String,String> e : tableConf.entrySet()) {
+            if (conf.containsKey(e.getKey())) {
+                conf.remove(e);
             }
-            props.add(e);
+            conf.put(e.getKey(), e.getValue());
         }
-        return props;
+        return conf;
     }
     
     @Override
@@ -350,6 +353,11 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
+    public boolean isOnline(String s) throws AccumuloException, TableNotFoundException {
+        return false;
+    }
+    
+    @Override
     public void clearLocatorCache(String tableName) throws TableNotFoundException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
@@ -442,6 +450,12 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
+    public void clone(String s, String s1, CloneConfiguration cloneConfiguration)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
     public void flush(String tableName, Text start, Text end, boolean wait) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
@@ -463,6 +477,11 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
+    public void importTable(String s, Set<String> set) throws TableExistsException, AccumuloException, AccumuloSecurityException {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
     public void exportTable(String tableName, String exportDir) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
     }
@@ -470,9 +489,8 @@ class InMemoryTableOperations extends TableOperationsHelper {
     @Override
     public boolean testClassLoad(String tableName, String className, String asTypeName)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-        
         try {
-            AccumuloVFSClassLoader.loadClass(className, Class.forName(asTypeName));
+            ClassLoaderUtil.loadClass(className, Class.forName(asTypeName));
         } catch (ClassNotFoundException e) {
             log.warn("Could not load class '" + className + "' with type name '" + asTypeName + "' in testClassLoad().", e);
             return false;

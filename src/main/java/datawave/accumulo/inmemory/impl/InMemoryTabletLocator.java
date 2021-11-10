@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.clientImpl.ClientContext;
 import org.apache.accumulo.core.clientImpl.TabletLocator;
@@ -47,7 +46,7 @@ public class InMemoryTabletLocator extends TabletLocator {
                     List<T> failures) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         TabletServerMutations<T> tsm = new TabletServerMutations<>("5");
         for (T m : mutations)
-            tsm.addMutation(new KeyExtent(), m);
+            tsm.addMutation(new KeyExtent(TableId.of(""), new Text(), new Text()), m);
         binnedMutations.put("", tsm);
     }
     

@@ -22,15 +22,15 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.NamespaceNotEmptyException;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.clientImpl.NamespaceOperationsHelper;
-import org.apache.accumulo.core.clientImpl.Namespaces;
 import org.apache.accumulo.core.clientImpl.Tables;
-import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader;
+import org.apache.accumulo.core.util.Validators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,9 +58,7 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     
     @Override
     public void create(String namespace) throws AccumuloException, AccumuloSecurityException, NamespaceExistsException {
-        if (!namespace.matches(Namespaces.VALID_NAME_REGEX))
-            throw new IllegalArgumentException();
-        
+        Validators.NEW_NAMESPACE_NAME.validate(namespace);
         if (exists(namespace))
             throw new NamespaceExistsException(namespace, namespace, "");
         else
@@ -102,12 +100,8 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     }
     
     @Override
-    public Iterable<Entry<String,String>> getProperties(String namespace) throws NamespaceNotFoundException {
-        if (!exists(namespace)) {
-            throw new NamespaceNotFoundException(namespace, namespace, "");
-        }
-        
-        return acu.namespaces.get(namespace).settings.entrySet();
+    public Iterable<Entry<String,String>> getProperties(String namespace) throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
+        return getConfiguration(namespace).entrySet();
     }
     
     @Override
@@ -122,13 +116,20 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     @Override
     public boolean testClassLoad(String namespace, String className, String asTypeName)
                     throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
-        
         try {
-            AccumuloVFSClassLoader.loadClass(className, Class.forName(asTypeName));
+            ClassLoaderUtil.loadClass(className, Class.forName(asTypeName));
         } catch (ClassNotFoundException e) {
             log.warn("Could not load class '" + className + "' with type name '" + asTypeName + "' in testClassLoad()", e);
             return false;
         }
         return true;
+    }
+    
+    @Override
+    public Map<String,String> getConfiguration(String namespace) throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
+        if (!exists(namespace)) {
+            throw new NamespaceNotFoundException(namespace, namespace, "");
+        }
+        return acu.namespaces.get(namespace).settings;
     }
 }

@@ -38,6 +38,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.clientImpl.ClientContext;
 import org.apache.accumulo.core.clientImpl.Credentials;
 import org.apache.accumulo.core.clientImpl.thrift.SecurityErrorCode;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.singletons.SingletonReservation;
@@ -52,7 +53,7 @@ public class InMemoryAccumuloClient extends ClientContext implements AccumuloCli
     }
     
     public InMemoryAccumuloClient(Credentials credentials, InMemoryAccumulo acu) throws AccumuloSecurityException {
-        super(SingletonReservation.noop(), new InMemoryClientInfo(credentials));
+        super(SingletonReservation.noop(), new InMemoryClientInfo(credentials), DefaultConfiguration.getInstance());
         if (credentials.getToken().isDestroyed())
             throw new AccumuloSecurityException(credentials.getPrincipal(), SecurityErrorCode.TOKEN_EXPIRED);
         this.username = credentials.getPrincipal();
