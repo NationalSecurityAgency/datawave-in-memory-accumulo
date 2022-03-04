@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,7 +44,6 @@ import org.apache.accumulo.core.client.admin.Locations;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
-import org.apache.accumulo.core.clientImpl.Tables;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.crypto.CryptoServiceFactory;
@@ -63,6 +61,7 @@ import org.apache.accumulo.core.metadata.RootTable;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.util.Validators;
+import org.apache.accumulo.core.util.tables.TableNameUtil;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -121,7 +120,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public void create(String tableName, NewTableConfiguration ntc) throws AccumuloException, AccumuloSecurityException, TableExistsException {
-        String namespace = Tables.qualify(tableName).getFirst();
+        String namespace = TableNameUtil.qualify(tableName).getFirst();
         Validators.NEW_TABLE_NAME.validate(tableName);
         if (exists(tableName))
             throw new TableExistsException(tableName, tableName, "");
@@ -173,7 +172,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
         if (exists(newTableName))
             throw new TableExistsException(newTableName, newTableName, "");
         InMemoryTable t = acu.tables.remove(oldTableName);
-        String namespace = Tables.qualify(newTableName).getFirst();
+        String namespace = TableNameUtil.qualify(newTableName).getFirst();
         InMemoryNamespace n = acu.namespaces.get(namespace);
         if (n == null) {
             n = new InMemoryNamespace();
@@ -204,7 +203,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public Map<String,String> getConfiguration(String tableName) throws AccumuloException, TableNotFoundException {
-        String namespace = Tables.qualify(tableName).getFirst();
+        String namespace = TableNameUtil.qualify(tableName).getFirst();
         if (!exists(tableName)) {
             if (!namespaceExists(namespace))
                 throw new TableNotFoundException(tableName, new NamespaceNotFoundException(null, namespace, null));
