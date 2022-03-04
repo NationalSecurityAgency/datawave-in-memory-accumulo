@@ -26,6 +26,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.admin.ActiveCompaction;
 import org.apache.accumulo.core.client.admin.ActiveScan;
 import org.apache.accumulo.core.client.admin.InstanceOperations;
+import org.apache.accumulo.core.data.InstanceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,5 +105,10 @@ class InMemoryInstanceOperations implements InstanceOperations {
     @Override
     public String getInstanceID() {
         return "in-memory-instance";
+    }
+    
+    @Override
+    public InstanceId getInstanceId() {
+        return InstanceId.of("in-memory-instance");
     }
 }
