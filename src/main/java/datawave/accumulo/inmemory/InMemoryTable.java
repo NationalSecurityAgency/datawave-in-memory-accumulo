@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.conf.IterConfigUtil;
+import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
@@ -95,7 +95,7 @@ public class InMemoryTable {
     InMemoryTable(boolean limitVersion, TimeType timeType, String tableId) {
         this.timeType = timeType;
         this.tableId = tableId;
-        settings = IterConfigUtil.generateInitialTableProperties(limitVersion);
+        settings = IteratorConfigUtil.generateInitialTableProperties(limitVersion);
         for (Entry<String,String> entry : DefaultConfiguration.getInstance()) {
             String key = entry.getKey();
             if (key.startsWith(Property.TABLE_PREFIX.getKey()))

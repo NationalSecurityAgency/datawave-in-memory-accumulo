@@ -28,8 +28,8 @@ import org.apache.accumulo.core.clientImpl.ScannerOptions;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.conf.IterConfigUtil;
-import org.apache.accumulo.core.conf.IterLoad;
+import org.apache.accumulo.core.iteratorsImpl.IteratorBuilder;
+import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.data.ArrayByteSequence;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Column;
@@ -137,9 +137,10 @@ public class InMemoryScannerBase extends ScannerOptions {
         AccumuloConfiguration conf = new InMemoryConfiguration(table.settings);
         InMemoryIteratorEnvironment iterEnv = new InMemoryIteratorEnvironment(auths);
         SortedKeyValueIterator<Key,Value> injectedIterators = applyInjectedIterators(wrappedFilter);
-        IterLoad iterLoad = IterConfigUtil.loadIterConf(IteratorScope.scan, serverSideIteratorList, serverSideIteratorOptions, conf);
+        IteratorBuilder.IteratorBuilderEnv iterLoad = IteratorConfigUtil.loadIterConf(IteratorScope.scan, serverSideIteratorList, serverSideIteratorOptions,
+                        conf);
         SortedKeyValueIterator<Key,Value> result = iterEnv
-                        .getTopLevelIterator(IterConfigUtil.loadIterators(injectedIterators, iterLoad.iterEnv(iterEnv).useAccumuloClassLoader(false)));
+                        .getTopLevelIterator(IteratorConfigUtil.loadIterators(injectedIterators, iterLoad.env(iterEnv).build()));
         return result;
     }
     
