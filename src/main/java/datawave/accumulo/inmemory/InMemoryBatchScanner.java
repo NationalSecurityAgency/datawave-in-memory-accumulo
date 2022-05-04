@@ -19,23 +19,15 @@ package datawave.accumulo.inmemory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.impl.ScannerOptions;
-import org.apache.accumulo.core.client.sample.SamplerConfiguration;
-import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.data.thrift.IterInfo;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.SortedMapIterator;
 import org.apache.accumulo.core.security.Authorizations;
@@ -46,7 +38,8 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
     List<Range> ranges = null;
     
     @Override
-    public InMemoryBatchScanner clone() {
+    public InMemoryBatchScanner clone() throws CloneNotSupportedException {
+        super.clone();
         InMemoryBatchScanner clone = new InMemoryBatchScanner(table, getAuthorizations());
         clone.ranges = (ranges == null ? null : new ArrayList<>(ranges));
         ScannerOptions.setOptions(clone, this);
@@ -81,7 +74,7 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
             try {
                 i = createFilter(i);
                 i.seek(range, createColumnBSS(fetchedColumns), !fetchedColumns.isEmpty());
-                chain.addIterator(new IteratorAdapter(i));
+                chain.addIterator(new InMemoryIteratorAdapter(i));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
