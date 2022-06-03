@@ -442,7 +442,9 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public void clone(String s, String s1, CloneConfiguration cloneConfiguration)
-                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {}
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
+        throw new NotImplementedException();
+    }
     
     @Override
     public void flush(String tableName, Text start, Text end, boolean wait) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
