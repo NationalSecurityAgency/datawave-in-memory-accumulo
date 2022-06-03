@@ -36,6 +36,7 @@ import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.CloneConfiguration;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.DiskUsage;
 import org.apache.accumulo.core.client.admin.FindMax;
@@ -438,6 +439,10 @@ class InMemoryTableOperations extends TableOperationsHelper {
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
         throw new NotImplementedException();
     }
+    
+    @Override
+    public void clone(String s, String s1, CloneConfiguration cloneConfiguration)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {}
     
     @Override
     public void flush(String tableName, Text start, Text end, boolean wait) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
