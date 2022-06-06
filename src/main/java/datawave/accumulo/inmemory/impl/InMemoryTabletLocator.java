@@ -33,8 +33,6 @@ import org.apache.accumulo.core.data.impl.KeyExtent;
 import org.apache.hadoop.io.Text;
 
 public class InMemoryTabletLocator extends TabletLocator {
-    public InMemoryTabletLocator() {}
-    
     @Override
     public TabletLocation locateTablet(ClientContext context, Text row, boolean skipRow, boolean retry)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
