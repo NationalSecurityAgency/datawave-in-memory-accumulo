@@ -40,6 +40,7 @@ import org.apache.accumulo.core.client.admin.CloneConfiguration;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.DiskUsage;
 import org.apache.accumulo.core.client.admin.FindMax;
+import org.apache.accumulo.core.client.admin.ImportConfiguration;
 import org.apache.accumulo.core.client.admin.Locations;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.admin.TimeType;
@@ -476,7 +477,8 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public void importTable(String s, Set<String> set) throws TableExistsException, AccumuloException, AccumuloSecurityException {
+    public void importTable(String tableName, Set<String> importDirs, ImportConfiguration ic)
+                    throws TableExistsException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
     }
     
