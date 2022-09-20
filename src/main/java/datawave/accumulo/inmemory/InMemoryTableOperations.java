@@ -47,7 +47,7 @@ import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.crypto.CryptoServiceFactory;
+import org.apache.accumulo.core.crypto.CryptoFactoryLoader;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
@@ -61,6 +61,8 @@ import org.apache.accumulo.core.metadata.MetadataTable;
 import org.apache.accumulo.core.metadata.RootTable;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.core.spi.crypto.CryptoEnvironment;
+import org.apache.accumulo.core.spi.crypto.CryptoService;
 import org.apache.accumulo.core.util.Validators;
 import org.apache.accumulo.core.util.tables.TableNameUtil;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -288,9 +290,10 @@ class InMemoryTableOperations extends TableOperationsHelper {
          */
         for (FileStatus importStatus : fs.listStatus(importPath)) {
             try {
+                CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE, table.settings);
                 FileSKVIterator importIterator = FileOperations.getInstance().newReaderBuilder()
-                                .forFile(importStatus.getPath().toString(), fs, fs.getConf(), CryptoServiceFactory.newDefaultInstance())
-                                .withTableConfiguration(DefaultConfiguration.getInstance()).seekToBeginning().build();
+                                .forFile(importStatus.getPath().toString(), fs, fs.getConf(), cs).withTableConfiguration(DefaultConfiguration.getInstance())
+                                .seekToBeginning().build();
                 while (importIterator.hasTop()) {
                     Key key = importIterator.getTopKey();
                     Value value = importIterator.getTopValue();
