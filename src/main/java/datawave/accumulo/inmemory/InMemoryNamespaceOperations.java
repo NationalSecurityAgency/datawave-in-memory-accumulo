@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -33,6 +34,8 @@ import org.apache.accumulo.core.util.Validators;
 import org.apache.accumulo.core.util.tables.TableNameUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.accumulo.core.util.Validators.EXISTING_NAMESPACE_NAME;
 
 class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     
@@ -95,12 +98,19 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     }
     
     @Override
+    public void modifyProperties(String namespace, Consumer<Map<String,String>> mapMutator)
+                    throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
     public void removeProperty(String namespace, String property) throws AccumuloException, AccumuloSecurityException {
         acu.namespaces.get(namespace).settings.remove(property);
     }
     
     @Override
     public Iterable<Entry<String,String>> getProperties(String namespace) throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
+        EXISTING_NAMESPACE_NAME.validate(namespace);
         return getConfiguration(namespace).entrySet();
     }
     
@@ -131,5 +141,10 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
             throw new NamespaceNotFoundException(namespace, namespace, "");
         }
         return acu.namespaces.get(namespace).settings;
+    }
+    
+    @Override
+    public Map<String,String> getNamespaceProperties(String namespace) throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
+        return getConfiguration(namespace);
     }
 }

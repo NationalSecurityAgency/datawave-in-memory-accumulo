@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -195,6 +197,12 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
+    public void modifyProperties(String tableName, Consumer<Map<String,String>> mapMutator)
+                    throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
     public void removeProperty(String tableName, String property) throws AccumuloException, AccumuloSecurityException {
         acu.tables.get(tableName).settings.remove(property);
     }
@@ -221,6 +229,11 @@ class InMemoryTableOperations extends TableOperationsHelper {
             conf.put(e.getKey(), e.getValue());
         }
         return conf;
+    }
+    
+    @Override
+    public Map<String,String> getTableProperties(String tableName) throws AccumuloException, TableNotFoundException {
+        return getConfiguration(tableName);
     }
     
     @Override

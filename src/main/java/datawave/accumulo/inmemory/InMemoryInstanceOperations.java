@@ -17,10 +17,12 @@
 package datawave.accumulo.inmemory;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -48,6 +50,12 @@ class InMemoryInstanceOperations implements InstanceOperations {
     @Override
     public void setProperty(String property, String value) throws AccumuloException, AccumuloSecurityException {
         acu.setProperty(property, value);
+    }
+    
+    @Override
+    public void modifyProperties(Consumer<Map<String,String>> mapMutator)
+                    throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
+        throw new UnsupportedOperationException();
     }
     
     @Override
