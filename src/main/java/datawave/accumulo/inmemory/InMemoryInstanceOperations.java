@@ -53,7 +53,7 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
-    public void modifyProperties(Consumer<Map<String,String>> mapMutator)
+    public Map<String,String> modifyProperties(Consumer<Map<String,String>> mapMutator)
                     throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
         throw new UnsupportedOperationException();
     }

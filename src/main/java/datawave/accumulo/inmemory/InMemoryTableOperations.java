@@ -197,7 +197,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
-    public void modifyProperties(String tableName, Consumer<Map<String,String>> mapMutator)
+    public Map<String,String> modifyProperties(String tableName, Consumer<Map<String,String>> mapMutator)
                     throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
         throw new UnsupportedOperationException();
     }
