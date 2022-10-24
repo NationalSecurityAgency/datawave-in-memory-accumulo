@@ -100,7 +100,8 @@ class InMemoryNamespaceOperations extends NamespaceOperationsHelper {
     @Override
     public Map<String,String> modifyProperties(String namespace, Consumer<Map<String,String>> mapMutator)
                     throws AccumuloException, AccumuloSecurityException, NamespaceNotFoundException {
-        throw new UnsupportedOperationException();
+        mapMutator.accept(acu.namespaces.get(namespace).settings);
+        return acu.namespaces.get(namespace).settings;
     }
     
     @Override

@@ -55,7 +55,8 @@ class InMemoryInstanceOperations implements InstanceOperations {
     @Override
     public Map<String,String> modifyProperties(Consumer<Map<String,String>> mapMutator)
                     throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
-        throw new UnsupportedOperationException();
+        mapMutator.accept(acu.systemProperties);
+        return acu.systemProperties;
     }
     
     @Override
