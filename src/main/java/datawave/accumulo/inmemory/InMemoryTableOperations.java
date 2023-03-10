@@ -21,15 +21,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
+import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -40,28 +42,31 @@ import org.apache.accumulo.core.client.admin.CloneConfiguration;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.DiskUsage;
 import org.apache.accumulo.core.client.admin.FindMax;
+import org.apache.accumulo.core.client.admin.ImportConfiguration;
 import org.apache.accumulo.core.client.admin.Locations;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.admin.TimeType;
-import org.apache.accumulo.core.client.impl.TableOperationsHelper;
-import org.apache.accumulo.core.client.impl.Tables;
+import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
-import org.apache.accumulo.core.conf.AccumuloConfiguration;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
+import org.apache.accumulo.core.crypto.CryptoFactoryLoader;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TabletId;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.data.impl.KeyExtent;
-import org.apache.accumulo.core.data.impl.TabletIdImpl;
+import org.apache.accumulo.core.dataImpl.KeyExtent;
+import org.apache.accumulo.core.dataImpl.TabletIdImpl;
 import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.metadata.MetadataTable;
 import org.apache.accumulo.core.metadata.RootTable;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.accumulo.core.spi.crypto.CryptoEnvironment;
+import org.apache.accumulo.core.spi.crypto.CryptoService;
+import org.apache.accumulo.core.util.Validators;
+import org.apache.accumulo.core.util.tables.TableNameUtil;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -120,9 +125,8 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public void create(String tableName, NewTableConfiguration ntc) throws AccumuloException, AccumuloSecurityException, TableExistsException {
-        String namespace = Tables.qualify(tableName).getFirst();
-        
-        checkArgument(tableName.matches(Tables.VALID_NAME_REGEX));
+        String namespace = TableNameUtil.qualify(tableName).getFirst();
+        Validators.NEW_TABLE_NAME.validate(tableName);
         if (exists(tableName))
             throw new TableExistsException(tableName, tableName, "");
         checkArgument(namespaceExists(namespace), "Namespace (" + namespace + ") does not exist, create it first");
@@ -173,7 +177,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
         if (exists(newTableName))
             throw new TableExistsException(newTableName, newTableName, "");
         InMemoryTable t = acu.tables.remove(oldTableName);
-        String namespace = Tables.qualify(newTableName).getFirst();
+        String namespace = TableNameUtil.qualify(newTableName).getFirst();
         InMemoryNamespace n = acu.namespaces.get(namespace);
         if (n == null) {
             n = new InMemoryNamespace();
@@ -193,29 +197,44 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
+    public Map<String,String> modifyProperties(String tableName, Consumer<Map<String,String>> mapMutator)
+                    throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
+        mapMutator.accept(acu.tables.get(tableName).settings);
+        return acu.tables.get(tableName).settings;
+    }
+    
+    @Override
     public void removeProperty(String tableName, String property) throws AccumuloException, AccumuloSecurityException {
         acu.tables.get(tableName).settings.remove(property);
     }
     
     @Override
-    public Iterable<Entry<String,String>> getProperties(String tableName) throws TableNotFoundException {
-        String namespace = Tables.qualify(tableName).getFirst();
+    public Iterable<Entry<String,String>> getProperties(String tableName) throws AccumuloException, TableNotFoundException {
+        return getConfiguration(tableName).entrySet();
+    }
+    
+    @Override
+    public Map<String,String> getConfiguration(String tableName) throws AccumuloException, TableNotFoundException {
+        String namespace = TableNameUtil.qualify(tableName).getFirst();
         if (!exists(tableName)) {
             if (!namespaceExists(namespace))
                 throw new TableNotFoundException(tableName, new NamespaceNotFoundException(null, namespace, null));
             throw new TableNotFoundException(null, tableName, null);
         }
-        
-        Set<Entry<String,String>> props = new HashSet<>(acu.namespaces.get(namespace).settings.entrySet());
-        
-        Set<Entry<String,String>> tableProps = acu.tables.get(tableName).settings.entrySet();
-        for (Entry<String,String> e : tableProps) {
-            if (props.contains(e)) {
-                props.remove(e);
+        Map<String,String> conf = new HashMap<>(acu.namespaces.get(namespace).settings);
+        Map<String,String> tableConf = acu.tables.get(tableName).settings;
+        for (Entry<String,String> e : tableConf.entrySet()) {
+            if (conf.containsKey(e.getKey())) {
+                conf.remove(e);
             }
-            props.add(e);
+            conf.put(e.getKey(), e.getValue());
         }
-        return props;
+        return conf;
+    }
+    
+    @Override
+    public Map<String,String> getTableProperties(String tableName) throws AccumuloException, TableNotFoundException {
+        return getConfiguration(tableName);
     }
     
     @Override
@@ -285,8 +304,10 @@ class InMemoryTableOperations extends TableOperationsHelper {
          */
         for (FileStatus importStatus : fs.listStatus(importPath)) {
             try {
-                FileSKVIterator importIterator = FileOperations.getInstance().newReaderBuilder().forFile(importStatus.getPath().toString(), fs, fs.getConf())
-                                .withTableConfiguration(AccumuloConfiguration.getDefaultConfiguration()).seekToBeginning().build();
+                CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE, table.settings);
+                FileSKVIterator importIterator = FileOperations.getInstance().newReaderBuilder()
+                                .forFile(importStatus.getPath().toString(), fs, fs.getConf(), cs).withTableConfiguration(DefaultConfiguration.getInstance())
+                                .seekToBeginning().build();
                 while (importIterator.hasTop()) {
                     Key key = importIterator.getTopKey();
                     Value value = importIterator.getTopValue();
@@ -349,6 +370,11 @@ class InMemoryTableOperations extends TableOperationsHelper {
     }
     
     @Override
+    public boolean isOnline(String s) throws AccumuloException, TableNotFoundException {
+        return false;
+    }
+    
+    @Override
     public void clearLocatorCache(String tableName) throws TableNotFoundException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
@@ -360,9 +386,9 @@ class InMemoryTableOperations extends TableOperationsHelper {
         for (Entry<String,InMemoryTable> entry : acu.tables.entrySet()) {
             String table = entry.getKey();
             if (RootTable.NAME.equals(table))
-                result.put(table, RootTable.ID);
+                result.put(table, RootTable.ID.canonical());
             else if (MetadataTable.NAME.equals(table))
-                result.put(table, MetadataTable.ID);
+                result.put(table, MetadataTable.ID.canonical());
             else
                 result.put(table, entry.getValue().getTableId());
         }
@@ -437,13 +463,13 @@ class InMemoryTableOperations extends TableOperationsHelper {
     @Override
     public void clone(String srcTableName, String newTableName, boolean flush, Map<String,String> propertiesToSet, Set<String> propertiesToExclude)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
     
     @Override
     public void clone(String s, String s1, CloneConfiguration cloneConfiguration)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
     
     @Override
@@ -464,20 +490,25 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public void importTable(String tableName, String exportDir) throws TableExistsException, AccumuloException, AccumuloSecurityException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void importTable(String tableName, Set<String> importDirs, ImportConfiguration ic)
+                    throws TableExistsException, AccumuloException, AccumuloSecurityException {
+        throw new UnsupportedOperationException();
     }
     
     @Override
     public void exportTable(String tableName, String exportDir) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
     
     @Override
     public boolean testClassLoad(String tableName, String className, String asTypeName)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-        
         try {
-            AccumuloVFSClassLoader.loadClass(className, Class.forName(asTypeName));
+            ClassLoaderUtil.loadClass(className, Class.forName(asTypeName));
         } catch (ClassNotFoundException e) {
             log.warn("Could not load class '" + className + "' with type name '" + asTypeName + "' in testClassLoad().", e);
             return false;

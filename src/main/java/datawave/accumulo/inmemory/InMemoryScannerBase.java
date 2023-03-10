@@ -24,25 +24,26 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.SampleNotPresentException;
-import org.apache.accumulo.core.client.impl.ScannerOptions;
+import org.apache.accumulo.core.clientImpl.ScannerOptions;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
+import org.apache.accumulo.core.iteratorsImpl.IteratorBuilder;
+import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.data.ArrayByteSequence;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
-import org.apache.accumulo.core.iterators.IteratorUtil;
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
-import org.apache.accumulo.core.iterators.system.ColumnFamilySkippingIterator;
-import org.apache.accumulo.core.iterators.system.ColumnQualifierFilter;
-import org.apache.accumulo.core.iterators.system.DeletingIterator;
-import org.apache.accumulo.core.iterators.system.MultiIterator;
-import org.apache.accumulo.core.iterators.system.VisibilityFilter;
+import org.apache.accumulo.core.iteratorsImpl.system.ColumnFamilySkippingIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.ColumnQualifierFilter;
+import org.apache.accumulo.core.iteratorsImpl.system.DeletingIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.MultiIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.VisibilityFilter;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.commons.lang.NotImplementedException;
 
 public class InMemoryScannerBase extends ScannerOptions {
     
@@ -74,12 +75,12 @@ public class InMemoryScannerBase extends ScannerOptions {
         
         @Override
         public SortedKeyValueIterator<Key,Value> reserveMapFileReader(String mapFileName) throws IOException {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException();
         }
         
         @Override
         public AccumuloConfiguration getConfig() {
-            return AccumuloConfiguration.getDefaultConfiguration();
+            return DefaultConfiguration.getInstance();
         }
         
         @Override
@@ -130,14 +131,16 @@ public class InMemoryScannerBase extends ScannerOptions {
     
     public SortedKeyValueIterator<Key,Value> createFilter(SortedKeyValueIterator<Key,Value> inner) throws IOException {
         byte[] defaultLabels = {};
-        inner = new ColumnFamilySkippingIterator(new DeletingIterator(inner, false));
-        ColumnQualifierFilter cqf = new ColumnQualifierFilter(inner, new HashSet<>(fetchedColumns));
+        inner = new ColumnFamilySkippingIterator(DeletingIterator.wrap(inner, false, DeletingIterator.Behavior.PROCESS));
+        SortedKeyValueIterator<Key,Value> cqf = ColumnQualifierFilter.wrap(inner, new HashSet<>(fetchedColumns));
         SortedKeyValueIterator<Key,Value> wrappedFilter = VisibilityFilter.wrap(cqf, auths, defaultLabels);
         AccumuloConfiguration conf = new InMemoryConfiguration(table.settings);
         InMemoryIteratorEnvironment iterEnv = new InMemoryIteratorEnvironment(auths);
         SortedKeyValueIterator<Key,Value> injectedIterators = applyInjectedIterators(wrappedFilter);
-        SortedKeyValueIterator<Key,Value> result = iterEnv.getTopLevelIterator(IteratorUtil.loadIterators(IteratorScope.scan, injectedIterators, null, conf,
-                        serverSideIteratorList, serverSideIteratorOptions, iterEnv, false));
+        IteratorBuilder.IteratorBuilderEnv iterLoad = IteratorConfigUtil.loadIterConf(IteratorScope.scan, serverSideIteratorList, serverSideIteratorOptions,
+                        conf);
+        SortedKeyValueIterator<Key,Value> result = iterEnv
+                        .getTopLevelIterator(IteratorConfigUtil.loadIterators(injectedIterators, iterLoad.env(iterEnv).build()));
         return result;
     }
     

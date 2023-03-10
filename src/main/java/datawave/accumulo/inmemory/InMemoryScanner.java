@@ -19,16 +19,15 @@ package datawave.accumulo.inmemory;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.impl.ScannerOptions;
+import org.apache.accumulo.core.clientImpl.ScannerOptions;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.Filter;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
-import org.apache.accumulo.core.iterators.SortedMapIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.SortedMapIterator;
 import org.apache.accumulo.core.security.Authorizations;
 
 public class InMemoryScanner extends InMemoryScannerBase implements Scanner, ScannerRebuilder, Cloneable {
@@ -48,22 +47,6 @@ public class InMemoryScanner extends InMemoryScannerBase implements Scanner, Sca
     
     InMemoryScanner(InMemoryTable table, Authorizations auths) {
         super(table, auths);
-    }
-    
-    @Override
-    public void setTimeOut(int timeOut) {
-        if (timeOut == Integer.MAX_VALUE)
-            setTimeout(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        else
-            setTimeout(timeOut, TimeUnit.SECONDS);
-    }
-    
-    @Override
-    public int getTimeOut() {
-        long timeout = getTimeout(TimeUnit.SECONDS);
-        if (timeout >= Integer.MAX_VALUE)
-            return Integer.MAX_VALUE;
-        return (int) timeout;
     }
     
     @Override

@@ -16,8 +16,9 @@
  */
 package datawave.accumulo.inmemory;
 
-import java.util.concurrent.TimeUnit;
-
+import java.util.Properties;
+import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -25,8 +26,6 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriterConfig;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -36,26 +35,34 @@ import org.apache.accumulo.core.client.admin.ReplicationOperations;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.clientImpl.ClientContext;
 import org.apache.accumulo.core.clientImpl.Credentials;
 import org.apache.accumulo.core.clientImpl.thrift.SecurityErrorCode;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.SystemPermission;
+import org.apache.accumulo.core.singletons.SingletonReservation;
 
-public class InMemoryConnector extends Connector {
+public class InMemoryAccumuloClient extends ClientContext implements AccumuloClient {
     
     String username;
     private final InMemoryAccumulo acu;
-    private final Instance instance;
     
-    InMemoryConnector(String username, InMemoryInstance instance) throws AccumuloSecurityException {
-        this(new Credentials(username, new PasswordToken(new byte[0])), new InMemoryAccumulo(InMemoryInstance.getDefaultFileSystem()), instance);
+    public InMemoryAccumuloClient(String username, InMemoryInstance instance) throws AccumuloSecurityException {
+        this(new Credentials(username, new PasswordToken(new byte[0])), instance.acu);
     }
     
-    InMemoryConnector(Credentials credentials, InMemoryAccumulo acu, InMemoryInstance instance) throws AccumuloSecurityException {
+    public InMemoryAccumuloClient(Credentials credentials, InMemoryAccumulo acu) throws AccumuloSecurityException {
+        super(SingletonReservation.noop(), new InMemoryClientInfo(credentials), DefaultConfiguration.getInstance(), null);
         if (credentials.getToken().isDestroyed())
             throw new AccumuloSecurityException(credentials.getPrincipal(), SecurityErrorCode.TOKEN_EXPIRED);
         this.username = credentials.getPrincipal();
         this.acu = acu;
-        this.instance = instance;
+        if (!acu.users.containsKey(username)) {
+            InMemoryUser user = new InMemoryUser(username, new PasswordToken(new byte[0]), Authorizations.EMPTY);
+            user.permissions.add(SystemPermission.SYSTEM);
+            acu.users.put(user.name, user);
+        }
     }
     
     @Override
@@ -66,22 +73,30 @@ public class InMemoryConnector extends Connector {
     }
     
     @Override
-    public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads, long maxMemory, long maxLatency,
-                    int maxWriteThreads) throws TableNotFoundException {
+    public BatchScanner createBatchScanner(String tableName, Authorizations authorizations) throws TableNotFoundException {
+        return createBatchScanner(tableName, authorizations, 1);
+    }
+    
+    @Override
+    public BatchScanner createBatchScanner(String tableName) throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
+        return createBatchScanner(tableName, securityOperations().getUserAuthorizations(username));
+    }
+    
+    @Override
+    public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads, BatchWriterConfig config)
+                    throws TableNotFoundException {
+        return createBatchDeleter(tableName, authorizations, numQueryThreads);
+    }
+    
+    @Override
+    public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads) throws TableNotFoundException {
         if (acu.tables.get(tableName) == null)
             throw new TableNotFoundException(tableName, tableName, "no such table");
         return new InMemoryBatchDeleter(acu, tableName, authorizations);
     }
     
     @Override
-    public BatchDeleter createBatchDeleter(String tableName, Authorizations authorizations, int numQueryThreads, BatchWriterConfig config)
-                    throws TableNotFoundException {
-        return createBatchDeleter(tableName, authorizations, numQueryThreads, config.getMaxMemory(), config.getMaxLatency(TimeUnit.MILLISECONDS),
-                        config.getMaxWriteThreads());
-    }
-    
-    @Override
-    public BatchWriter createBatchWriter(String tableName, long maxMemory, long maxLatency, int maxWriteThreads) throws TableNotFoundException {
+    public BatchWriter createBatchWriter(String tableName) throws TableNotFoundException {
         if (acu.tables.get(tableName) == null)
             throw new TableNotFoundException(tableName, tableName, "no such table");
         return new InMemoryBatchWriter(acu, tableName);
@@ -89,17 +104,17 @@ public class InMemoryConnector extends Connector {
     
     @Override
     public BatchWriter createBatchWriter(String tableName, BatchWriterConfig config) throws TableNotFoundException {
-        return createBatchWriter(tableName, config.getMaxMemory(), config.getMaxLatency(TimeUnit.MILLISECONDS), config.getMaxWriteThreads());
-    }
-    
-    @Override
-    public MultiTableBatchWriter createMultiTableBatchWriter(long maxMemory, long maxLatency, int maxWriteThreads) {
-        return new InMemoryMultiTableBatchWriter(acu);
+        return createBatchWriter(tableName);
     }
     
     @Override
     public MultiTableBatchWriter createMultiTableBatchWriter(BatchWriterConfig config) {
-        return createMultiTableBatchWriter(config.getMaxMemory(), config.getMaxLatency(TimeUnit.MILLISECONDS), config.getMaxWriteThreads());
+        return createMultiTableBatchWriter();
+    }
+    
+    @Override
+    public MultiTableBatchWriter createMultiTableBatchWriter() {
+        return new InMemoryMultiTableBatchWriter(acu);
     }
     
     @Override
@@ -111,8 +126,8 @@ public class InMemoryConnector extends Connector {
     }
     
     @Override
-    public Instance getInstance() {
-        return instance;
+    public Scanner createScanner(String tableName) throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
+        return createScanner(tableName, securityOperations().getUserAuthorizations(username));
     }
     
     @Override
@@ -141,7 +156,7 @@ public class InMemoryConnector extends Connector {
     }
     
     @Override
-    public ConditionalWriter createConditionalWriter(String tableName, ConditionalWriterConfig config) throws TableNotFoundException {
+    public ConditionalWriter createConditionalWriter(String tableName, ConditionalWriterConfig config) {
         // TODO add implementation
         throw new UnsupportedOperationException();
     }
@@ -151,5 +166,13 @@ public class InMemoryConnector extends Connector {
         // TODO add implementation
         throw new UnsupportedOperationException();
     }
+    
+    @Override
+    public Properties properties() {
+        return new Properties();
+    }
+    
+    @Override
+    public void close() {}
     
 }

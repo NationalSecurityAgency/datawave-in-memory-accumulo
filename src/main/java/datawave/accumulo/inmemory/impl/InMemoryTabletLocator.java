@@ -23,13 +23,13 @@ import java.util.Map;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.impl.ClientContext;
-import org.apache.accumulo.core.client.impl.TabletLocator;
+import org.apache.accumulo.core.clientImpl.ClientContext;
+import org.apache.accumulo.core.clientImpl.TabletLocator;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.impl.KeyExtent;
+import org.apache.accumulo.core.data.TableId;
+import org.apache.accumulo.core.dataImpl.KeyExtent;
 import org.apache.hadoop.io.Text;
 
 public class InMemoryTabletLocator extends TabletLocator {
@@ -44,14 +44,14 @@ public class InMemoryTabletLocator extends TabletLocator {
                     List<T> failures) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         TabletServerMutations<T> tsm = new TabletServerMutations<>("5");
         for (T m : mutations)
-            tsm.addMutation(new KeyExtent(), m);
+            tsm.addMutation(new KeyExtent(TableId.of(""), new Text(), new Text()), m);
         binnedMutations.put("", tsm);
     }
     
     @Override
     public List<Range> binRanges(ClientContext context, List<Range> ranges, Map<String,Map<KeyExtent,List<Range>>> binnedRanges)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-        binnedRanges.put("", Collections.singletonMap(new KeyExtent("", null, null), ranges));
+        binnedRanges.put("", Collections.singletonMap(new KeyExtent(TableId.of(""), null, null), ranges));
         return Collections.emptyList();
     }
     
@@ -65,5 +65,5 @@ public class InMemoryTabletLocator extends TabletLocator {
     public void invalidateCache() {}
     
     @Override
-    public void invalidateCache(Instance instance, String server) {}
+    public void invalidateCache(ClientContext context, String server) {}
 }

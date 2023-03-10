@@ -26,8 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.admin.TimeType;
-import org.apache.accumulo.core.client.impl.Namespaces;
-import org.apache.accumulo.core.client.impl.Tables;
+import org.apache.accumulo.core.clientImpl.Namespace;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.metadata.MetadataTable;
@@ -37,6 +36,7 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.NamespacePermission;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
+import org.apache.accumulo.core.util.tables.TableNameUtil;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.Text;
 
@@ -52,8 +52,8 @@ public class InMemoryAccumulo {
         InMemoryUser root = new InMemoryUser("root", new PasswordToken(new byte[0]), Authorizations.EMPTY);
         root.permissions.add(SystemPermission.SYSTEM);
         users.put(root.name, root);
-        namespaces.put(Namespaces.DEFAULT_NAMESPACE, new InMemoryNamespace());
-        namespaces.put(Namespaces.ACCUMULO_NAMESPACE, new InMemoryNamespace());
+        namespaces.put(Namespace.DEFAULT.name(), new InMemoryNamespace());
+        namespaces.put(Namespace.ACCUMULO.name(), new InMemoryNamespace());
         createTable("root", RootTable.NAME, true, TimeType.LOGICAL);
         createTable("root", MetadataTable.NAME, true, TimeType.LOGICAL);
         createTable("root", ReplicationTable.NAME, true, TimeType.LOGICAL);
@@ -87,7 +87,7 @@ public class InMemoryAccumulo {
     }
     
     public void createTable(String username, String tableName, boolean useVersions, TimeType timeType, Map<String,String> properties) {
-        String namespace = Tables.qualify(tableName).getFirst();
+        String namespace = TableNameUtil.qualify(tableName).getFirst();
         
         if (!namespaceExists(namespace)) {
             return;
@@ -102,7 +102,7 @@ public class InMemoryAccumulo {
     }
     
     public void createTable(String username, String tableName, TimeType timeType, Map<String,String> properties) {
-        String namespace = Tables.qualify(tableName).getFirst();
+        String namespace = TableNameUtil.qualify(tableName).getFirst();
         HashMap<String,String> props = new HashMap<>(properties);
         
         if (!namespaceExists(namespace)) {

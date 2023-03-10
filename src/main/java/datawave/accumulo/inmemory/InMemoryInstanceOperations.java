@@ -17,15 +17,20 @@
 package datawave.accumulo.inmemory;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
+import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.admin.ActiveCompaction;
 import org.apache.accumulo.core.client.admin.ActiveScan;
 import org.apache.accumulo.core.client.admin.InstanceOperations;
-import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader;
+import org.apache.accumulo.core.data.InstanceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +43,20 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
+    public Set<String> getScanServers() {
+        return new HashSet<>();
+    }
+    
+    @Override
     public void setProperty(String property, String value) throws AccumuloException, AccumuloSecurityException {
         acu.setProperty(property, value);
+    }
+    
+    @Override
+    public Map<String,String> modifyProperties(Consumer<Map<String,String>> mapMutator)
+                    throws AccumuloException, AccumuloSecurityException, IllegalArgumentException, ConcurrentModificationException {
+        mapMutator.accept(acu.systemProperties);
+        return acu.systemProperties;
     }
     
     @Override
@@ -58,6 +75,11 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
+    public List<String> getManagerLocations() {
+        return null;
+    }
+    
+    @Override
     public List<String> getTabletServers() {
         return new ArrayList<>();
     }
@@ -70,7 +92,7 @@ class InMemoryInstanceOperations implements InstanceOperations {
     @Override
     public boolean testClassLoad(String className, String asTypeName) throws AccumuloException, AccumuloSecurityException {
         try {
-            AccumuloVFSClassLoader.loadClass(className, Class.forName(asTypeName));
+            ClassLoaderUtil.loadClass(className, Class.forName(asTypeName));
         } catch (ClassNotFoundException e) {
             log.warn("Could not find class named '" + className + "' in testClassLoad.", e);
             return false;
@@ -84,10 +106,25 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
+    public List<ActiveCompaction> getActiveCompactions() throws AccumuloException, AccumuloSecurityException {
+        return new ArrayList<>();
+    }
+    
+    @Override
     public void ping(String tserver) throws AccumuloException {
         
     }
     
     @Override
     public void waitForBalance() throws AccumuloException {}
+    
+    @Override
+    public String getInstanceID() {
+        return "in-memory-instance";
+    }
+    
+    @Override
+    public InstanceId getInstanceId() {
+        return InstanceId.of("in-memory-instance");
+    }
 }
