@@ -1,11 +1,11 @@
 package datawave.accumulo.inmemory;
 
+import java.util.Properties;
+
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.clientImpl.ClientInfoImpl;
 import org.apache.accumulo.core.clientImpl.Credentials;
 import org.apache.accumulo.core.conf.ClientProperty;
-
-import java.util.Properties;
 
 public class InMemoryClientInfo extends ClientInfoImpl {
     public InMemoryClientInfo(Credentials credentials) {

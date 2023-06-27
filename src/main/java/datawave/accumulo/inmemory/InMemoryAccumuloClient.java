@@ -17,6 +17,7 @@
 package datawave.accumulo.inmemory;
 
 import java.util.Properties;
+
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

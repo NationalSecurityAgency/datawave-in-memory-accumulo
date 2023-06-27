@@ -31,12 +31,12 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.hadoop.io.Text;
 

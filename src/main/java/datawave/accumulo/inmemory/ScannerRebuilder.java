@@ -1,10 +1,10 @@
 package datawave.accumulo.inmemory;
 
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-
 import java.util.Iterator;
 import java.util.Map;
+
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
 
 public interface ScannerRebuilder {
     /**
