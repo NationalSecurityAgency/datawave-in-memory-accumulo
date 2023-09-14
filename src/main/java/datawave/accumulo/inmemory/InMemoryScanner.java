@@ -41,7 +41,7 @@ public class InMemoryScanner extends InMemoryScannerBase implements Scanner, Sca
         clone.batchSize = getBatchSize();
         clone.range = getRange();
         ScannerOptions.setOptions(clone, this);
-        clone.timeOut = timeOut;
+        clone.retryTimeout = retryTimeout;
         return clone;
     }
     
