@@ -30,7 +30,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <version.accumulo>2.1.0</version.accumulo>
+        <version.accumulo>2.1.1</version.accumulo>
     </properties>
     <dependencyManagement>
         <dependencies>

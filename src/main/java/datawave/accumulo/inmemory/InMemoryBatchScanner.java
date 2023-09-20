@@ -42,7 +42,7 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
         InMemoryBatchScanner clone = new InMemoryBatchScanner(table, getAuthorizations());
         clone.ranges = (ranges == null ? null : new ArrayList<>(ranges));
         ScannerOptions.setOptions(clone, this);
-        clone.timeOut = timeOut;
+        clone.retryTimeout = retryTimeout;
         
         return clone;
     }
