@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.PluginEnvironment;
 import org.apache.accumulo.core.client.SampleNotPresentException;
 import org.apache.accumulo.core.clientImpl.ScannerOptions;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
@@ -81,6 +82,11 @@ public class InMemoryScannerBase extends ScannerOptions {
         @Override
         public AccumuloConfiguration getConfig() {
             return DefaultConfiguration.getInstance();
+        }
+        
+        @Override
+        public PluginEnvironment getPluginEnv() {
+            return MockPluginEnvironment.newInstance(getConfig());
         }
         
         @Override
