@@ -6,10 +6,7 @@ env:
 name: Publish package to GitHub Packages
 on:
   release:
-    types: [created]
-  push:
-    branches:
-      - 'github-packages'
+    types: [published]
 jobs:
   publish:
     runs-on: ubuntu-latest
