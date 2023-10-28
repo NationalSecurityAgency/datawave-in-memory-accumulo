@@ -24,7 +24,7 @@
             <!-- NOTE: This section can go away once we are able to publish artifacts to maven central. -->
             <id>github</id>
             <name>Gitlab Packages Repository</name>
-            <url>https://maven.pkg.github.com/NationalSecurityAgency/datawave-in-memocumulo</url>
+            <url>https://maven.pkg.github.com/NationalSecurityAgency/datawave-in-memory-accumulo</url>
         </repository>
     </distributionManagement>
     <properties>
