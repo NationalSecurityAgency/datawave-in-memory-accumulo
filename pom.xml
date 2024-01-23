@@ -198,9 +198,9 @@
                     <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
                     <!-- matches distribution management repository url above -->
                     <branch>refs/heads/mvn-repo</branch>
-                    <!-- use the NationalSecurityAgency/datawave repo's mvn-repo branch, not the current repo -->
+                    <!-- use the NationalSecurityAgency/datawave-mvn-repo repo's mvn-repo branch, not the current repo -->
                     <repositoryOwner>NationalSecurityAgency</repositoryOwner>
-                    <repositoryName>datawave</repositoryName>
+                    <repositoryName>datawave-mvn-repo</repositoryName>
                     <!-- remote branch name -->
                     <includes>
                         <include>**/*</include>
