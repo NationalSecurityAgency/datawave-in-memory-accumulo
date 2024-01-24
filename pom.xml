@@ -21,10 +21,9 @@
     </scm>
     <distributionManagement>
         <repository>
-            <!-- NOTE: This section can go away once we are able to publish artifacts to maven central. -->
-            <id>internal.repo</id>
-            <name>Temporary Staging Repository</name>
-            <url>file://${project.build.directory}/mvn-repo</url>
+            <id>github-datawave</id>
+            <name>GitHub Datawave Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/NationalSecurityAgency/datawave</url>
         </repository>
     </distributionManagement>
     <properties>
@@ -84,11 +83,6 @@
         </dependency>
     </dependencies>
     <pluginRepositories>
-        <!--
-            This is a temporary work-around until we can publish artifacts to maven central.
-            This allows us to download the read-properties and assert-properties plugins, as
-            well as the datawave code style template for the formatter-maven-plugin.
-        -->
         <pluginRepository>
             <releases>
                 <enabled>true</enabled>
@@ -96,8 +90,8 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>datawave-mvn-repo</id>
-            <url>https://raw.githubusercontent.com/NationalSecurityAgency/datawave-mvn-repo/mvn-repo</url>
+            <id>github-datawave</id>
+            <url>https://maven.pkg.github.com/NationalSecurityAgency/datawave</url>
         </pluginRepository>
     </pluginRepositories>
     <build>
@@ -177,38 +171,6 @@
         </pluginManagement>
         <plugins>
             <plugin>
-                <!-- NOTE: This plugin can go away once we are able to publish artifacts to maven central. -->
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
-                <version>0.12</version>
-                <executions>
-                    <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
-                    <execution>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>site</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <message>Maven artifacts for ${project.name} ${project.version}</message>
-                    <!-- git commit message -->
-                    <noJekyll>true</noJekyll>
-                    <!-- disable webpage processing -->
-                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
-                    <!-- matches distribution management repository url above -->
-                    <branch>refs/heads/mvn-repo</branch>
-                    <!-- use the NationalSecurityAgency/datawave-mvn-repo repo's mvn-repo branch, not the current repo -->
-                    <repositoryOwner>NationalSecurityAgency</repositoryOwner>
-                    <repositoryName>datawave-mvn-repo</repositoryName>
-                    <!-- remote branch name -->
-                    <includes>
-                        <include>**/*</include>
-                    </includes>
-                    <merge>true</merge>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
@@ -217,14 +179,6 @@
                     <target>1.8</target>
                     <optimize>true</optimize>
                     <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <!-- NOTE: This plugin can go away once we are able to publish artifacts to maven central. -->
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
-                <configuration>
-                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
                 </configuration>
             </plugin>
             <plugin>
