@@ -324,6 +324,24 @@
                                 </configuration>
                             </execution>
                         </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>ch.qos.reload4j</groupId>
+                                <artifactId>reload4j</artifactId>
+                                <version>1.2.22</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.apache.maven.doxia</groupId>
+                                <artifactId>doxia-site-renderer</artifactId>
+                                <version>1.7.4</version>
+                                <exclusions>
+                                    <exclusion>
+                                        <artifactId>log4j</artifactId>
+                                        <groupId>log4j</groupId>
+                                    </exclusion>
+                                </exclusions>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
