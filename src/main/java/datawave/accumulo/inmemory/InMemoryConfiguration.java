@@ -17,12 +17,9 @@
 package datawave.accumulo.inmemory;
 
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.Property;
-
-import com.google.common.base.Predicate;
 
 class InMemoryConfiguration extends AccumuloConfiguration {
     Map<String,String> map;
@@ -51,6 +48,6 @@ class InMemoryConfiguration extends AccumuloConfiguration {
     
     @Override
     public boolean isPropertySet(Property property) {
-        return map.containsKey(property);
+        return map.containsKey(property.getKey());
     }
 }

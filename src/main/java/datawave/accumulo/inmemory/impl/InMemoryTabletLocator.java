@@ -20,24 +20,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.InvalidTabletHostingRequestException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.clientImpl.ClientContext;
-import org.apache.accumulo.core.clientImpl.TabletLocator;
+import org.apache.accumulo.core.clientImpl.ClientTabletCache;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TableId;
 import org.apache.accumulo.core.dataImpl.KeyExtent;
 import org.apache.hadoop.io.Text;
 
-public class InMemoryTabletLocator extends TabletLocator {
-    @Override
-    public TabletLocation locateTablet(ClientContext context, Text row, boolean skipRow, boolean retry)
-                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-        throw new UnsupportedOperationException();
-    }
+public class InMemoryTabletLocator extends ClientTabletCache {
     
     @Override
     public <T extends Mutation> void binMutations(ClientContext context, List<T> mutations, Map<String,TabletServerMutations<T>> binnedMutations,
@@ -66,4 +63,16 @@ public class InMemoryTabletLocator extends TabletLocator {
     
     @Override
     public void invalidateCache(ClientContext context, String server) {}
+    
+    @Override
+    public CachedTablet findTablet(ClientContext context, Text row, boolean skipRow, LocationNeed locationNeed, int minimumHostAhead, Range hostAheadRange)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException, InvalidTabletHostingRequestException {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public List<Range> findTablets(ClientContext context, List<Range> ranges, BiConsumer<CachedTablet,Range> rangeConsumer, LocationNeed locationNeed)
+                    throws AccumuloException, AccumuloSecurityException, TableNotFoundException, InvalidTabletHostingRequestException {
+        throw new UnsupportedOperationException();
+    }
 }

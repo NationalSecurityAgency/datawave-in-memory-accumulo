@@ -75,18 +75,8 @@ public class InMemoryScannerBase extends ScannerOptions {
         }
         
         @Override
-        public SortedKeyValueIterator<Key,Value> reserveMapFileReader(String mapFileName) throws IOException {
-            throw new UnsupportedOperationException();
-        }
-        
-        @Override
-        public AccumuloConfiguration getConfig() {
-            return DefaultConfiguration.getInstance();
-        }
-        
-        @Override
         public PluginEnvironment getPluginEnv() {
-            return MockPluginEnvironment.newInstance(getConfig());
+            return MockPluginEnvironment.newInstance(DefaultConfiguration.getInstance());
         }
         
         @Override
@@ -100,11 +90,6 @@ public class InMemoryScannerBase extends ScannerOptions {
         }
         
         private ArrayList<SortedKeyValueIterator<Key,Value>> topLevelIterators = new ArrayList<>();
-        
-        @Override
-        public void registerSideChannel(SortedKeyValueIterator<Key,Value> iter) {
-            topLevelIterators.add(iter);
-        }
         
         @Override
         public Authorizations getAuthorizations() {
@@ -172,7 +157,7 @@ public class InMemoryScannerBase extends ScannerOptions {
      * @return
      */
     private SortedKeyValueIterator<Key,Value> applyInjectedIterators(SortedKeyValueIterator<Key,Value> base) {
-        SortedKeyValueIterator prev = base;
+        SortedKeyValueIterator<Key,Value> prev = base;
         for (SortedKeyValueIterator<Key,Value> injected : injectedIterators) {
             try {
                 injected.init(prev, null, null);
