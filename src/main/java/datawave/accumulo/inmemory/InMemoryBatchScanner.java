@@ -73,7 +73,9 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
             try {
                 i = createFilter(i);
                 i.seek(range, createColumnBSS(fetchedColumns), !fetchedColumns.isEmpty());
-                chain.addIterator(new IteratorAdapter(i));
+                if (i.hasTop()) {
+                    chain.addIterator(new IteratorAdapter(i));
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
