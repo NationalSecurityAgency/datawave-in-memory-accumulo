@@ -112,6 +112,10 @@ public class InMemoryAccumulo {
         return systemProperties.remove(key);
     }
     
+    public String getInstanceID() {
+        return "mock-instance-id";
+    }
+    
     public void addMutation(String table, Mutation m) {
         InMemoryTable t = tables.get(table);
         t.addMutation(m);
