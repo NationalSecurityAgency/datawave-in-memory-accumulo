@@ -499,7 +499,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
                     throws TableExistsException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
     }
-
+    
     public void importTable(String tableName, String importDir, boolean keepMappings, boolean skipOnline)
                     throws TableExistsException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
