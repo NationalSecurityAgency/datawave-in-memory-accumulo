@@ -98,6 +98,10 @@ public class InMemoryScannerBase extends ScannerOptions {
         public boolean isFullMajorCompaction() {
             return false;
         }
+
+        public boolean isUserCompaction() {
+            return false;
+        }
         
         private ArrayList<SortedKeyValueIterator<Key,Value>> topLevelIterators = new ArrayList<>();
         
