@@ -500,6 +500,11 @@ class InMemoryTableOperations extends TableOperationsHelper {
         throw new UnsupportedOperationException();
     }
     
+    public void importTable(String tableName, String importDir, boolean keepMappings, boolean skipOnline)
+                    throws TableExistsException, AccumuloException, AccumuloSecurityException {
+        throw new UnsupportedOperationException();
+    }
+    
     @Override
     public void exportTable(String tableName, String exportDir) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
