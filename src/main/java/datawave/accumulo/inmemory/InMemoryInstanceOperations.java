@@ -22,7 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -30,6 +32,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.admin.ActiveCompaction;
 import org.apache.accumulo.core.client.admin.ActiveScan;
 import org.apache.accumulo.core.client.admin.InstanceOperations;
+import org.apache.accumulo.core.client.admin.servers.ServerId;
 import org.apache.accumulo.core.data.InstanceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,10 +93,30 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
+    public ServerId getServer(ServerId.Type type, String resourceGroup, String host, int port) {
+        return null;
+    }
+
+    @Override
+    public Set<ServerId> getServers(ServerId.Type type) {
+        return Set.of();
+    }
+
+    @Override
+    public Set<ServerId> getServers(ServerId.Type type, Predicate<String> predicate, BiPredicate<String,Integer> biPredicate) {
+        return Set.of();
+    }
+
+    @Override
     public List<ActiveScan> getActiveScans(String tserver) throws AccumuloException, AccumuloSecurityException {
         return new ArrayList<>();
     }
-    
+
+    @Override
+    public List<ActiveScan> getActiveScans(ServerId server) throws AccumuloException, AccumuloSecurityException {
+        return List.of();
+    }
+
     @Override
     public boolean testClassLoad(String className, String asTypeName) throws AccumuloException, AccumuloSecurityException {
         try {
@@ -108,6 +131,11 @@ class InMemoryInstanceOperations implements InstanceOperations {
     @Override
     public List<ActiveCompaction> getActiveCompactions(String tserver) throws AccumuloException, AccumuloSecurityException {
         return new ArrayList<>();
+    }
+    
+    @Override
+    public List<ActiveCompaction> getActiveCompactions(ServerId server) throws AccumuloException, AccumuloSecurityException {
+        return List.of();
     }
     
     @Override
