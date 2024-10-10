@@ -96,27 +96,27 @@ class InMemoryInstanceOperations implements InstanceOperations {
     public ServerId getServer(ServerId.Type type, String resourceGroup, String host, int port) {
         return null;
     }
-
+    
     @Override
     public Set<ServerId> getServers(ServerId.Type type) {
         return Set.of();
     }
-
+    
     @Override
     public Set<ServerId> getServers(ServerId.Type type, Predicate<String> predicate, BiPredicate<String,Integer> biPredicate) {
         return Set.of();
     }
-
+    
     @Override
     public List<ActiveScan> getActiveScans(String tserver) throws AccumuloException, AccumuloSecurityException {
         return new ArrayList<>();
     }
-
+    
     @Override
     public List<ActiveScan> getActiveScans(ServerId server) throws AccumuloException, AccumuloSecurityException {
         return List.of();
     }
-
+    
     @Override
     public boolean testClassLoad(String className, String asTypeName) throws AccumuloException, AccumuloSecurityException {
         try {

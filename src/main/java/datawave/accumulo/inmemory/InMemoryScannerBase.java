@@ -33,6 +33,7 @@ import org.apache.accumulo.core.data.ArrayByteSequence;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.TableId;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope;
@@ -69,14 +70,16 @@ public class InMemoryScannerBase extends ScannerOptions {
     static class InMemoryIteratorEnvironment implements IteratorEnvironment {
         
         private final Authorizations auths;
+        private final InMemoryTable table;
         
-        InMemoryIteratorEnvironment(Authorizations auths) {
+        InMemoryIteratorEnvironment(Authorizations auths, InMemoryTable table) {
             this.auths = auths;
+            this.table = table;
         }
         
         @Override
         public PluginEnvironment getPluginEnv() {
-            return MockPluginEnvironment.newInstance(DefaultConfiguration.getInstance());
+            return MockPluginEnvironment.newInstance(table);
         }
         
         @Override
@@ -118,6 +121,11 @@ public class InMemoryScannerBase extends ScannerOptions {
         public IteratorEnvironment cloneWithSamplingEnabled() {
             throw new SampleNotPresentException();
         }
+        
+        @Override
+        public TableId getTableId() {
+            return TableId.of(table.getTableId());
+        }
     }
     
     public SortedKeyValueIterator<Key,Value> createFilter(SortedKeyValueIterator<Key,Value> inner) throws IOException {
@@ -126,7 +134,7 @@ public class InMemoryScannerBase extends ScannerOptions {
         SortedKeyValueIterator<Key,Value> cqf = ColumnQualifierFilter.wrap(inner, new HashSet<>(fetchedColumns));
         SortedKeyValueIterator<Key,Value> wrappedFilter = VisibilityFilter.wrap(cqf, auths, defaultLabels);
         AccumuloConfiguration conf = new InMemoryConfiguration(table.settings);
-        InMemoryIteratorEnvironment iterEnv = new InMemoryIteratorEnvironment(auths);
+        InMemoryIteratorEnvironment iterEnv = new InMemoryIteratorEnvironment(auths, table);
         SortedKeyValueIterator<Key,Value> injectedIterators = applyInjectedIterators(wrappedFilter);
         IteratorBuilder.IteratorBuilderEnv iterLoad = IteratorConfigUtil.loadIterConf(IteratorScope.scan, serverSideIteratorList, serverSideIteratorOptions,
                         conf);
