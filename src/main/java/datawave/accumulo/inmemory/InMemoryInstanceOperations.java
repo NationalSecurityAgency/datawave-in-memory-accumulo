@@ -149,6 +149,9 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
+    public void ping(ServerId serverId) throws AccumuloException {}
+    
+    @Override
     public void waitForBalance() throws AccumuloException {}
     
     @Override

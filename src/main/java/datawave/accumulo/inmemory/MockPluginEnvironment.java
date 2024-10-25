@@ -19,9 +19,9 @@ public final class MockPluginEnvironment {
     
     /**
      * Creates a new mock PluginEnvironment.
+     *
+     * The accumulo configuration
      * 
-     * @param conf
-     *            The accumulo configuration
      * @return A plugin environment
      */
     public static PluginEnvironment newInstance(InMemoryTable inMemoryTable) {
