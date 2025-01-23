@@ -18,8 +18,6 @@ package datawave.accumulo.inmemory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -47,32 +46,20 @@ import org.apache.accumulo.core.client.admin.FindMax;
 import org.apache.accumulo.core.client.admin.ImportConfiguration;
 import org.apache.accumulo.core.client.admin.Locations;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
+import org.apache.accumulo.core.client.admin.TabletMergeability;
 import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.crypto.CryptoFactoryLoader;
+import org.apache.accumulo.core.clientImpl.TabletMergeabilityUtil;
 import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TabletId;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.dataImpl.KeyExtent;
 import org.apache.accumulo.core.dataImpl.TabletIdImpl;
-import org.apache.accumulo.core.file.FileOperations;
-import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.metadata.AccumuloTable;
-import org.apache.accumulo.core.metadata.RootTable;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.spi.crypto.CryptoEnvironment;
-import org.apache.accumulo.core.spi.crypto.CryptoService;
 import org.apache.accumulo.core.util.Validators;
 import org.apache.accumulo.core.util.tables.TableNameUtil;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,9 +121,15 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public void addSplits(String tableName, SortedSet<Text> partitionKeys) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+        putSplits(tableName, TabletMergeabilityUtil.userDefaultSplits(partitionKeys));
+    }
+    
+    @Override
+    public void putSplits(String tableName, SortedMap<Text,TabletMergeability> splits)
+                    throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
-        acu.addSplits(tableName, partitionKeys);
+        acu.addSplits(tableName, new TreeSet<>(splits.keySet()));
     }
     
     @Override
