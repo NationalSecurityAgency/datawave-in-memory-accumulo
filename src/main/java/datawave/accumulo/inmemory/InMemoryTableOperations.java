@@ -18,6 +18,8 @@ package datawave.accumulo.inmemory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,15 +53,29 @@ import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
 import org.apache.accumulo.core.clientImpl.TabletMergeabilityUtil;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
+import org.apache.accumulo.core.crypto.CryptoFactoryLoader;
 import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TabletId;
+import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.dataImpl.KeyExtent;
 import org.apache.accumulo.core.dataImpl.TabletIdImpl;
+import org.apache.accumulo.core.file.FileOperations;
+import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.metadata.AccumuloTable;
+import org.apache.accumulo.core.metadata.UnreferencedTabletFile;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.core.spi.crypto.CryptoEnvironment;
+import org.apache.accumulo.core.spi.crypto.CryptoService;
 import org.apache.accumulo.core.util.Validators;
 import org.apache.accumulo.core.util.tables.TableNameUtil;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,94 +256,6 @@ class InMemoryTableOperations extends TableOperationsHelper {
             throw new TableNotFoundException(tableName, tableName, "");
         return Collections.singleton(range);
     }
-    
-    // @Override
-    // public void importDirectory(String tableName, String dir, String failureDir, boolean setTime)
-    // throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    // long time = System.currentTimeMillis();
-    // InMemoryTable table = acu.tables.get(tableName);
-    // if (table == null) {
-    // throw new TableNotFoundException(null, tableName, "The table was not found");
-    // }
-    // Path importPath = new Path(dir);
-    // Path failurePath = new Path(failureDir);
-    //
-    // FileSystem fs = acu.getFileSystem();
-    // /*
-    // * check preconditions
-    // */
-    // // directories are directories
-    // if (fs.isFile(importPath)) {
-    // throw new IOException("Import path must be a directory.");
-    // }
-    // if (fs.isFile(failurePath)) {
-    // throw new IOException("Failure path must be a directory.");
-    // }
-    // // failures are writable
-    // Path createPath = failurePath.suffix("/.createFile");
-    // FSDataOutputStream createStream = null;
-    // try {
-    // createStream = fs.create(createPath);
-    // } catch (IOException e) {
-    // throw new IOException("Error path is not writable.");
-    // } finally {
-    // if (createStream != null) {
-    // createStream.close();
-    // }
-    // }
-    // fs.delete(createPath, false);
-    // // failures are empty
-    // FileStatus[] failureChildStats = fs.listStatus(failurePath);
-    // if (failureChildStats.length > 0) {
-    // throw new IOException("Error path must be empty.");
-    // }
-    // /*
-    // * Begin the import - iterate the files in the path
-    // */
-    // for (FileStatus importStatus : fs.listStatus(importPath)) {
-    // try {
-    // CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE, table.settings);
-    // FileSKVIterator importIterator = FileOperations.getInstance().newReaderBuilder()
-    // .forFile(importStatus.getPath().toString(), fs, fs.getConf(), cs).withTableConfiguration(DefaultConfiguration.getInstance())
-    // .seekToBeginning().build();
-    // while (importIterator.hasTop()) {
-    // Key key = importIterator.getTopKey();
-    // Value value = importIterator.getTopValue();
-    // if (setTime) {
-    // key.setTimestamp(time);
-    // }
-    // Mutation mutation = new Mutation(key.getRow());
-    // if (!key.isDeleted()) {
-    // mutation.put(key.getColumnFamily(), key.getColumnQualifier(), new ColumnVisibility(key.getColumnVisibilityData().toArray()),
-    // key.getTimestamp(), value);
-    // } else {
-    // mutation.putDelete(key.getColumnFamily(), key.getColumnQualifier(), new ColumnVisibility(key.getColumnVisibilityData().toArray()),
-    // key.getTimestamp());
-    // }
-    // table.addMutation(mutation);
-    // importIterator.next();
-    // }
-    // } catch (Exception e) {
-    // FSDataOutputStream failureWriter = null;
-    // DataInputStream failureReader = null;
-    // try {
-    // failureWriter = fs.create(failurePath.suffix("/" + importStatus.getPath().getName()));
-    // failureReader = fs.open(importStatus.getPath());
-    // int read = 0;
-    // byte[] buffer = new byte[1024];
-    // while (-1 != (read = failureReader.read(buffer))) {
-    // failureWriter.write(buffer, 0, read);
-    // }
-    // } finally {
-    // if (failureReader != null)
-    // failureReader.close();
-    // if (failureWriter != null)
-    // failureWriter.close();
-    // }
-    // }
-    // fs.delete(importStatus.getPath(), true);
-    // }
-    // }
     
     @Override
     public void offline(String tableName) throws AccumuloSecurityException, AccumuloException, TableNotFoundException {
@@ -595,7 +523,6 @@ class InMemoryTableOperations extends TableOperationsHelper {
     
     @Override
     public ImportDestinationArguments importDirectory(String directory) {
-        // TODO Auto-generated method stub
-        return super.importDirectory(directory);
+        return new InMemoryBulkImport(acu, directory);
     }
 }
