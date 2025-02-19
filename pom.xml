@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>gov.nsa.datawave</groupId>
     <artifactId>datawave-in-memory-accumulo</artifactId>
-    <version>4.0.2-depfix</version>
+    <version>4.0.2-SNAPHSOT</version>
     <packaging>jar</packaging>
     <name>Datawave InMemory Accumulo</name>
     <url>https://code.nsa.gov/datawave-in-memory-accumulo</url>
@@ -85,10 +85,22 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
             <version>${version.accumulo}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>javax.el</artifactId>
+                    <groupId>javax.el</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-server-base</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>javax.el</artifactId>
+                    <groupId>javax.el</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
