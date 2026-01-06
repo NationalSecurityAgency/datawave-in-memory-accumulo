@@ -62,9 +62,6 @@ public class InMemoryTabletLocator extends ClientTabletCache {
     public void invalidateCache() {}
     
     @Override
-    public void invalidateCache(ClientContext context, String server) {}
-    
-    @Override
     public CachedTablet findTablet(ClientContext context, Text row, boolean skipRow, LocationNeed locationNeed, int minimumHostAhead, Range hostAheadRange)
                     throws AccumuloException, AccumuloSecurityException, TableNotFoundException, InvalidTabletHostingRequestException {
         throw new UnsupportedOperationException();

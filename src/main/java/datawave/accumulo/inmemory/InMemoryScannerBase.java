@@ -130,9 +130,14 @@ public class InMemoryScannerBase extends ScannerOptions {
         public TableId getTableId() {
             return TableId.of(table.getTableId());
         }
+        
+        @Override
+        public boolean isRunningLowOnMemory() {
+            return false;
+        }
     }
     
-    public SortedKeyValueIterator<Key,Value> createFilter(SortedKeyValueIterator<Key,Value> inner) throws IOException {
+    public SortedKeyValueIterator<Key,Value> createFilter(SortedKeyValueIterator<Key,Value> inner) throws IOException, ReflectiveOperationException {
         byte[] defaultLabels = {};
         inner = new ColumnFamilySkippingIterator(DeletingIterator.wrap(inner, false, DeletingIterator.Behavior.PROCESS));
         SortedKeyValueIterator<Key,Value> cqf = ColumnQualifierFilter.wrap(inner, new HashSet<>(fetchedColumns));

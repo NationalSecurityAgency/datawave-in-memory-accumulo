@@ -16,6 +16,7 @@
  */
 package datawave.accumulo.inmemory;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -35,6 +36,7 @@ import org.apache.accumulo.core.client.admin.ActiveScan;
 import org.apache.accumulo.core.client.admin.InstanceOperations;
 import org.apache.accumulo.core.client.admin.servers.ServerId;
 import org.apache.accumulo.core.data.InstanceId;
+import org.apache.accumulo.core.data.ResourceGroupId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +96,7 @@ class InMemoryInstanceOperations implements InstanceOperations {
     }
     
     @Override
-    public ServerId getServer(ServerId.Type type, String s, String s1, int i) {
+    public ServerId getServer(ServerId.Type type, ResourceGroupId rgid, String s1, int i) {
         return null;
     }
     
@@ -103,8 +105,7 @@ class InMemoryInstanceOperations implements InstanceOperations {
         return Set.of();
     }
     
-    @Override
-    public Set<ServerId> getServers(ServerId.Type type, Predicate<String> predicate, BiPredicate<String,Integer> biPredicate) {
+    public Set<ServerId> getServers(ServerId.Type type, Predicate<ResourceGroupId> predicate, BiPredicate<String,Integer> biPredicate) {
         return Set.of();
     }
     
@@ -158,6 +159,11 @@ class InMemoryInstanceOperations implements InstanceOperations {
     @Override
     public InstanceId getInstanceId() {
         return InstanceId.of("in-memory-instance");
+    }
+    
+    @Override
+    public Duration getManagerTime() throws AccumuloException, AccumuloSecurityException {
+        return null;
     }
     
     @Override

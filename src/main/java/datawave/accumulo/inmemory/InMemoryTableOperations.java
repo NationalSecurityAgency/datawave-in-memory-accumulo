@@ -18,8 +18,6 @@ package datawave.accumulo.inmemory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,29 +51,17 @@ import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.clientImpl.TableOperationsHelper;
 import org.apache.accumulo.core.clientImpl.TabletMergeabilityUtil;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.crypto.CryptoFactoryLoader;
 import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.RowRange;
 import org.apache.accumulo.core.data.TabletId;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.dataImpl.KeyExtent;
 import org.apache.accumulo.core.dataImpl.TabletIdImpl;
-import org.apache.accumulo.core.file.FileOperations;
-import org.apache.accumulo.core.file.FileSKVIterator;
-import org.apache.accumulo.core.metadata.AccumuloTable;
-import org.apache.accumulo.core.metadata.UnreferencedTabletFile;
+import org.apache.accumulo.core.metadata.SystemTables;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.spi.crypto.CryptoEnvironment;
-import org.apache.accumulo.core.spi.crypto.CryptoService;
+import org.apache.accumulo.core.util.RowRangeUtil;
 import org.apache.accumulo.core.util.Validators;
 import org.apache.accumulo.core.util.tables.TableNameUtil;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +108,7 @@ class InMemoryTableOperations extends TableOperationsHelper {
         if (versioningIter)
             create(tableName, ntc);
         else
-            create(tableName, ntc.withoutDefaultIterators());
+            create(tableName, ntc.withoutDefaults());
     }
     
     @Override
@@ -295,10 +281,10 @@ class InMemoryTableOperations extends TableOperationsHelper {
         Map<String,String> result = new HashMap<>();
         for (Entry<String,InMemoryTable> entry : acu.tables.entrySet()) {
             String table = entry.getKey();
-            if (AccumuloTable.ROOT.tableName().equals(table))
-                result.put(table, AccumuloTable.ROOT.tableId().canonical());
-            else if (AccumuloTable.METADATA.tableName().equals(table))
-                result.put(table, AccumuloTable.METADATA.tableId().canonical());
+            if (SystemTables.ROOT.tableName().equals(table))
+                result.put(table, SystemTables.ROOT.tableId().canonical());
+            else if (SystemTables.METADATA.tableName().equals(table))
+                result.put(table, SystemTables.METADATA.tableId().canonical());
             else
                 result.put(table, entry.getValue().getTableId());
         }
@@ -387,17 +373,27 @@ class InMemoryTableOperations extends TableOperationsHelper {
         if (!exists(tableName))
             throw new TableNotFoundException(tableName, tableName, "");
     }
-    
+
     @Override
+    public Text getMaxRow(String tableName, Authorizations auths, RowRange rowRange) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+        InMemoryTable table = acu.tables.get(tableName);
+        if (table == null)
+            throw new TableNotFoundException(tableName, tableName, "no such table");
+
+        return FindMax.findMax(new InMemoryScanner(table, auths), rowRange);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public Text getMaxRow(String tableName, Authorizations auths, Text startRow, boolean startInclusive, Text endRow, boolean endInclusive)
                     throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         InMemoryTable table = acu.tables.get(tableName);
         if (table == null)
             throw new TableNotFoundException(tableName, tableName, "no such table");
         
-        return FindMax.findMax(new InMemoryScanner(table, auths), startRow, startInclusive, endRow, endInclusive);
+        return FindMax.findMax(new InMemoryScanner(table, auths), RowRange.range(startRow, startInclusive, endRow, endInclusive));
     }
-    
+
     @Override
     public void importTable(String tableName, String exportDir) throws TableExistsException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
@@ -446,7 +442,12 @@ class InMemoryTableOperations extends TableOperationsHelper {
     public SamplerConfiguration getSamplerConfiguration(String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         throw new UnsupportedOperationException();
     }
-    
+
+    @Override
+    public String getNamespace(String s) {
+        return "";
+    }
+
     @Override
     public Locations locate(String tableName, Collection<Range> ranges) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         Map<String,Map<KeyExtent,List<Range>>> binnedRanges = new HashMap<>();
@@ -519,10 +520,5 @@ class InMemoryTableOperations extends TableOperationsHelper {
         public Map<TabletId,List<Range>> groupByTablet() {
             return groupedByTablets;
         }
-    }
-    
-    @Override
-    public ImportDestinationArguments importDirectory(String directory) {
-        return new InMemoryBulkImport(acu, directory);
     }
 }

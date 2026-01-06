@@ -30,7 +30,7 @@ import org.apache.accumulo.core.client.admin.TimeType;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.clientImpl.Namespace;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.metadata.AccumuloTable;
+import org.apache.accumulo.core.metadata.SystemTables;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.NamespacePermission;
 import org.apache.accumulo.core.security.SystemPermission;
@@ -93,9 +93,9 @@ public class InMemoryAccumulo {
         users.put(root.name, root);
         namespaces.put(Namespace.DEFAULT.name(), new InMemoryNamespace());
         namespaces.put(Namespace.ACCUMULO.name(), new InMemoryNamespace());
-        createTable("root", AccumuloTable.ROOT.tableName(), true, TimeType.LOGICAL);
-        createTable("root", AccumuloTable.METADATA.tableName(), true, TimeType.LOGICAL);
-        createTable("root", AccumuloTable.FATE.tableName(), true, TimeType.LOGICAL);
+        createTable("root", SystemTables.ROOT.tableName(), true, TimeType.LOGICAL);
+        createTable("root", SystemTables.METADATA.tableName(), true, TimeType.LOGICAL);
+        createTable("root", SystemTables.FATE.tableName(), true, TimeType.LOGICAL);
         this.fs = fs;
         this.instanceName = instanceName;
     }

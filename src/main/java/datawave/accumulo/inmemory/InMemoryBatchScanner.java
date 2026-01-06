@@ -76,7 +76,7 @@ public class InMemoryBatchScanner extends InMemoryScannerBase implements BatchSc
                 if (i.hasTop()) {
                     chain.addIterator(new IteratorAdapter(i));
                 }
-            } catch (IOException e) {
+            } catch (IOException | ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }
         }
